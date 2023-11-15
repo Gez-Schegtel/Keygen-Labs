@@ -1,0 +1,69 @@
+
+// Hay que hacer la carga ordenada por el tiempo de irrución //
+
+acción carga_encolada_de_procesos es;
+ambiente
+
+    proceso = registro
+        idProc: entero
+        ta: entero //tiempo de arribo
+        ti: entero // tiempo de irrupción
+        tam: entero // tamaño
+        tr: entero // tiempo restante
+        prox: proceso 
+    fin_registro 
+
+    userTa: entero
+    userTi: entero
+    userTam: entero
+
+    primp, p, rp: puntero a proceso
+
+    cantProc: entero
+
+    acuml: entero
+
+proceso
+    // Suponemos que el tiempo de arribo está en orden. //
+
+    escribir("Ingrese la cantidad de procesos que desee ingresar. No se permiten más de diez.")
+    leer(cantProc)
+
+    mientras (cantProc > 10) or (cantProc < 0) hacer
+        escribir("ha ingresado un número inválido de proceso. Ingrese del un número del 1 hasta 10)
+        leer(cantProc)
+    fin_mientras 
+
+    acuml:= 0
+    primp:= NIL
+
+    para i:= 1 hasta cantProc hacer 
+        escribir("Ingrese el tiempo de arribo >>")
+        leer(userTa)
+        escribir("Ingrese el tiempo de irrupción >> ")
+        leer(userTi)
+
+        acuml:= acuml + userTi
+
+        escribir("Ingrese el tamaño del proceso")
+        leer(userTam)
+        
+        nuevo(p)
+        *p.idProc:= i
+        *p.ta:= userTa
+        *p.ti:= userTi
+        *p.tam:= userTam // controlar //
+        *p.tr:= userTi
+        *p.prox:= NIL
+
+        si (primp = NIL) entonces
+            primp:= p 
+        sino 
+            *rp.prox:= p
+        fin_si
+
+        rp:= p
+
+    fin_para
+
+fin_proceso
