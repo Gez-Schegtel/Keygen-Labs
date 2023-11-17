@@ -25,7 +25,7 @@ Proceso *primp, *p, *priml, *rl = NULL, *res = NULL, *sl = NULL;
 
 Particion memoria[4];
 
-int cantProc, userTa, userTi, userTam, acuml= 0, tiempoCiclo = 0, multiprog = 0, quantum = 0, tresVeces = 0;
+int cantProc, userTa, userTi, userTam, acuml= 0, tiempoCiclo = 0, multiprog = 0, quantum = 0, tresVeces = 0, x = 1;
 
 bool particionRequerida = false;
 
@@ -226,11 +226,9 @@ void muestrasParciales(Proceso *r){
             printf("Proceso asignado: %d \n", memoria[i].idProcAsig);
             printf("Fragmentación interna: %d \n", memoria[i].tamPart - r->tam);
         } else {
-            printf("Proceso asignado: ∅");
-            printf("Fragmentación interna: ∅");
+            printf("Proceso asignado: ∅ \n");
+            printf("Fragmentación interna: ∅ \n");
         }
-
-        r = r->prox;
     }
 }
 
@@ -271,7 +269,7 @@ int main(void){
                 res->prox = NULL;
                 multiprog--;
             } else {
-                if (rl->tr == 0 && priml->prox == NULL){
+                if (rl->tr == 0 && priml->prox == NULL && x == 0){
                     // Aquí termina un proceso y es el ÚLTIMO de todos
                     priml = NULL; // Hace que "deje de apuntar" a la dirección que originalmente apuntaba
                     rl = NULL;
@@ -283,7 +281,8 @@ int main(void){
                 }
             }
         }
-
+        
+        x = 0;
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
             if (priml == NULL){
                 priml = primp;
