@@ -1,0 +1,200 @@
+
+
+acción cola_de_listos(primp: lista_de_espera) es
+ambiente 
+    proceso = registro
+        idProc: entero
+        ta: entero //tiempo de arribo
+        ti: entero // tiempo de irrupción
+        tam: entero // tamaño
+        tr: entero // tiempo restante
+        prox: proceso 
+    fin_registro
+
+    primp, priml, l, rl: puntero a proceso  
+
+    tiempoCiclo: entero
+    multiprog: entero
+    acuml: entero
+    quantum:= entero 
+    i: entero
+    partOcupada:= booleano
+
+    partición = registro
+        idPart: entero
+        dirCom: string
+        tamPart: entero
+        idProcAsig: entero
+        fragInt: entero
+        libre: booleano
+    fin_registro
+ 
+    memoria[0..3]: arreglo de partición // El tamaño depende del lenguaje de programación
+    
+    procedimiento iniciar_arreglo() es;
+        para i:= 0 hasta 3 hacer 
+            memoria[i].idPart:= i
+            memoria[i].libre:= true
+        fin_para 
+
+        memoria[0].dirCom:= 0
+        memoria[0].tamPart:= 100
+
+        memoria[1].dirCom:= 100
+        memoria[1].tamPart:= 60
+
+        memoria[2].dirCom:= 160
+        memoria[2].tamPart:= 120
+
+        memoria[3].dirCom:= 280
+        memoria[3].tamPart:= 250
+    fin_procedimiento 
+
+    procedimiento asignar(p) es 
+        memoria[p].idProcAsig:= *rl.idProc
+        memoria[p].fragInt:= memoria[p].tamPart - *rl.tam
+        memoria[p].libre:= false
+        
+
+        // acá "desmarcamos", ya que el proceso pudo ser asignado a memoria //
+        particionRequerida:= false 
+    fin_procedimiento
+
+    procedimiento best_fit() es;
+        // algoritmo best_fit //
+        
+        si (*rl.tam <= 60) and (memoria[1].libre = true) entonces 
+            asignar(1)
+        sino 
+            si (*rl.tam <= 120) and (*rl.tam > 60) and (memoria[2].libre = true) entonces
+                asignar(2)
+            sino 
+                si (*rl.tam <= 250) and (*rl.tam > 120) and (memoria[3].libre = true) entonces
+                    asignar(3)
+                sino 
+                    // esto controla si la partición que algún proceso requiere, está ocupada //
+                    particionRequerida:= true
+                fin_si
+            fin_si 
+        fin_si 
+    fin_procedimiento
+
+proceso 
+    // cada iteración es un segundo // 
+
+    // inicializamos tiempo de cada ciclo y la multiprogramación //
+    tiempoCiclo:= 0
+    multiprog:= 0 
+    priml:= NIL
+
+    iniciar_arreglo()
+
+    mientras (1) hacer
+
+        si (quantum = 2) and (*priml.prox <> nil) entonces
+            
+            res:= priml
+            priml:= *priml.prox
+            *res.prox:= nil
+            quantum:= 0
+            si (*e.tr > 0) entonces
+                *rl.prox:= res
+            sino
+                si (*e.tr = 0) entonces
+                    multiprog:= multiprog - 1
+                fin si
+            fin si
+            
+        sino                         // aca terminó un proc sin que termine el quantum, osea cuando es 1
+            si (quantum < 2) and (*e.tr = 0) and (*priml.prox <> nil) entonces
+                res:= priml
+                priml:= *priml.prox
+                *res.prox:= nil
+                multiprog:= multiprog - 1
+                disponer(res)
+            sino
+                si (*e.tr = 0) and (*priml.prox = nil) entonces    //aca termina un proc y es el ULTIMO de todos
+                    disponer(priml)
+                    disponer(rl)
+                    disponer(res)
+                fin si
+            fin si
+        fin si
+        
+        mientras (primp <> NIL) and (primp.ta = tiempoCiclo) and (multiprog < 5 ) hacer 
+        
+            si (priml = NIL) entonces
+                priml:= primp
+                primp:= *primp.prox
+                *priml.prox:= NIL
+                rl:= priml // resguardamos el priml
+            sino 
+                *rl.prox:= primp
+                rl:= primp
+                si (primp.prox <> NIL) entonces 
+                    primp:= *primp.prox
+                else
+                    primp:= NIL
+                fin_si
+                *rl.prox:= NIL
+            fin_si
+            
+            
+            multiprog:= multiprog + 1
+            
+        fin_mientras
+
+        //rl qeuda en el ultimo proceso de la cola de listos
+
+        sl:= priml
+        soloHacer3veces:= 0
+
+        
+        MIENTRAS (sl <> nil) and (particionRequerida = false) AND (soloHacer3veces < 3) HACER
+            best_fit()
+            soloHacer3veces:= soloHacer3veces + 1
+
+            /*
+            si (soloHacer3veces = 1) and (particionRequerida = false) entonces
+                // Como priml es el primer proceso de la cola de listos, es el que se estará ejecutando. Por ello, lo muestro. //
+                *e.idProc:= *priml.idProc
+                *e.tr:= *priml.ti
+            fin si
+            */
+
+            si (*sl.prox <> nil) and (particionRequerida = false) entonces
+                sl:= sl.prox
+            fin si
+        FM
+
+        // *e.tr:= *e.tr - 1
+        *priml.tr:= *priml.tr - 1;
+
+        print("instante nro", tiempoCiclo)
+        print("proceso en ejecicion", *priml.idProc)
+
+        paraMostrar:= priml
+        para i:= 1 hasta 3 hacer
+            printf(`Particion ID:` i)
+            printf(`Tamanio:` memoria[i].tamPart)
+            printf(`Direccion de comienzo:` memoria[i].dirCom)
+
+            si (memoria[i].libre = false) entonces
+                printf(`Proceso asignado:` memoria[i].procAsig)
+                printf(`Fragmentacion interna:` memoria[i].tamPart - *paraMostrar.tam)
+            sino
+                printf(`Proceso asignado: -`)
+                printf(`Fragmentacion interna: -`)
+            fin si
+            paraMostrar:= *paraMostrar.prox
+
+        fin para
+
+        tiempoCiclo:= tiempoCiclo + 1
+        quantum:= quantum + 1
+
+        *e.tr:= *e.tr - 1
+
+    fin_mientras 
+
+fin_acción
