@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 typedef struct proceso {
     int idProc;
@@ -20,7 +21,7 @@ typedef struct particion {
     bool libre;
 } Particion;
 
-Proceso *primp, *p, *priml = NULL, *rl, *res, *sl;
+Proceso *primp, *p, *priml, *rl = NULL, *res = NULL, *sl = NULL;
 
 Particion memoria[4];
 
@@ -178,9 +179,43 @@ void best_fit(void) {
     }
 }
 
+bool condiciones(void){
+    if (memoria[1].libre && memoria[2].libre && memoria[3].libre && priml == NULL && rl == NULL && res == NULL){
+        return(true);
+    } else {
+        return(false);
+    }
+}
+
+void iniciarPunterosAuxiliares(void){
+    priml = (Proceso *)malloc(sizeof (Proceso));
+    priml->idProc = 0;
+    priml->ta = 0;
+    priml->ti = 0;
+    priml->tam = 0;
+    priml->tr = 0;
+    priml->prox = NULL;
+
+    rl = (Proceso *)malloc(sizeof (Proceso));
+    rl->idProc = 0;
+    rl->ta = 0;
+    rl->ti = 0;
+    rl->tam = 0;
+    rl->tr = 0;
+    rl->prox = NULL;
+
+    res = (Proceso *)malloc(sizeof (Proceso));
+    res->idProc = 0;
+    res->ta = 0;
+    res->ti = 0;
+    res->tam = 0;
+    res->tr = 0;
+    res->prox = NULL;
+}
+
 void muestrasParciales(Proceso *r){
-    printf("Instante número: %d \n", tiempoCiclo);
-    printf("Proceso en ejecución: %d \n", priml->idProc);
+    printf("\nInstante número: %d \n", tiempoCiclo);
+    printf("Proceso en ejecución: %d \n", r->idProc);
 
     for (int i = 1; i < 4; i++){
         printf("Id de partición: %d \n", i);
@@ -199,16 +234,10 @@ void muestrasParciales(Proceso *r){
     }
 }
 
-bool condiciones(void){
-    if (memoria[1].libre && memoria[2].libre && memoria[3].libre && priml == NULL && rl == NULL && res == NULL){
-        return(true);
-    } else {
-        return(false);
-    }
-}
-
 int main(void){
     printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
+
+    iniciarPunterosAuxiliares();
 
     generacionProcesos();
 
@@ -225,6 +254,7 @@ int main(void){
             res->prox = NULL;
             quantum = 0;
             
+            /* Verificamos si nos queda tiempo de irrupción. */
             if (rl->tr > 0){
                 rl->prox = res;
             } else {
@@ -243,14 +273,13 @@ int main(void){
             } else {
                 if (rl->tr == 0 && priml->prox == NULL){
                     // Aquí termina un proceso y es el ÚLTIMO de todos
-                    /*
+                    priml = NULL; // Hace que "deje de apuntar" a la dirección que originalmente apuntaba
+                    rl = NULL;
+                    res = NULL;
+                    
                     free(priml); // Liberar memoria del proceso terminado
                     free(rl);    // Liberar memoria de rl
                     free(res);   // Liberar memoria de res
-                    */
-                   priml = NULL;
-                   rl = NULL;
-                   res = NULL;
                 }
             }
         }
