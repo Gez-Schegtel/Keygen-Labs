@@ -233,6 +233,32 @@ void muestrasParciales(Proceso *r){
     }
 }
 
+void menu(void){
+    char respuesta[2];
+    do {
+        printf("¿Desea realizar alguna acción? (Sí/No): ");
+        scanf("%s", respuesta);
+
+        // Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas
+        for (int i = 0; i < strlen(respuesta); i++) {
+            respuesta[i] = tolower(respuesta[i]);
+        }
+
+        if (strcmp(respuesta, "sí") == 0) {
+            // Código para la opción "Sí"
+            printf("Realizando la acción...\n");
+        } else if (strcmp(respuesta, "no") == 0) {
+            // Código para la opción "No"
+            printf("Saliendo del programa.\n");
+            break;
+        } else {
+            printf("Respuesta no válida. Por favor, ingrese 'Sí' o 'No'.\n");
+        }
+
+    } while (1); // Bucle infinito, se sale con la opción "No"
+}
+
+
 int main(void){
     printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
 
