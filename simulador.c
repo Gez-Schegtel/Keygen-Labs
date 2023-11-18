@@ -30,44 +30,32 @@ int cantProc, userTa, userTi, userTam, acuml= 0, tiempoCiclo = 0, multiprog = 0,
 
 bool particionRequerida = false;
 
-void numProcesoUsuario(void){
-    printf("Ingrese el número de procesos que desee planificar: ");
-    scanf("%d", &cantProc);
+int controlDeEntradas(char *myString, int min, int max) {
+    int valor;
+    bool bandit;
 
-    while (cantProc > 10 || cantProc < 1) {
-        printf("Ha ingresado un número inválido de procesos. Ingrese un número del 1 hasta 10.\n >> ");
-        scanf("%d", &cantProc);
-    }
-}
+    do {
+        /* Pide al usuario que ingrese un valor entero. */
+        printf("\nIngrese el %s.\n", myString);
+        printf("Se aceptan valores comprendidos entre %d y %d.\n: ", min, max);
 
-void datosProcesoUsuario(int i){
-    printf("\nProceso nro. %d \n", i);
-    
-    printf("Ingrese el tiempo de arribo >> "); /*Puede ser cero*/
-    scanf("%d", &userTa);
-    
-    while (userTa > 1000 || userTa < 0){
-        printf("Ha ingresado un tiempo de arribo incorrecto. Ingrese un valor del 0 al 1000. \n");
-        scanf("%d", &userTa);
-    }
+        /* Intenta leer un entero desde la entrada estándar. */
+        if (scanf("%d", &valor) != 1) {
+            /* La entrada no fue un entero válido. */
+            printf("\nError: Has ingresado un valor que no es númerico.\n");
+            bandit = false;
+            /* ¡Importante! Limpiar el buffer de entrada para evitar bucles infinitos. */
+            while (getchar() != '\n');
+        
+        } else if (!(valor >= min && valor <= max)) {
+            printf("\nError: has ingresado un valor numérico fuera del rango permitido.\n");
+            bandit = false;
+        } else {
+            bandit = true;
+        }
+    } while (!bandit);
 
-    printf("Ingrese el tiempo de irrupción >> ");
-    scanf("%d", &userTi);
-
-    while (userTi > 1000 || userTi < 1){
-        printf("Ha ingresado un tiempo de irrupción incorrecto. Ingrese un valor del 1 al 1000. \n");
-        scanf("%d", &userTi);
-    }
-    
-    acuml += userTi;
-
-    printf("Ingrese el tamaño del proceso >> ");
-    scanf("%d", &userTam);
-
-    while (userTam > 250 || userTam < 1){
-        printf("Ha ingresado un tamaño incorrecto para el proceso. Se permiten valores de 1 hasta 250. \n");
-        scanf("%d", &userTam);
-    }
+    return(valor);
 }
 
 void insertarOrdenado(Proceso **cabeza, Proceso *nuevo){
@@ -88,6 +76,26 @@ void insertarOrdenado(Proceso **cabeza, Proceso *nuevo){
     }
 }
 
+void cargaManual(void){
+    /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
+    
+    cantProc = controlDeEntradas("número de procesos que desee planificar", 1, 10);
+
+    for (int i = 1; i <= cantProc; i++) {
+        printf("\nProceso nro. %d \n", i);
+
+        p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+        p->idProc = i;
+        p->ta = controlDeEntradas("tiempo de arribo", 0, 500);
+        p->ti = controlDeEntradas("tiempo de irrupción", 1, 500);
+        acuml += p->ti;
+        p->tr = p->ti;
+        p->tam = controlDeEntradas("tamaño del proceso", 1, 250);
+        
+        insertarOrdenado(&primp, p);
+    }
+}
+
 void recorridoListaInicial(Proceso *r){
     // system("clear");
     printf("Lista de procesos nuevos: \n");
@@ -99,25 +107,6 @@ void recorridoListaInicial(Proceso *r){
         printf("Tamaño del proceso: %d \n", r->tam);
         
         r = r->prox;
-    }
-}
-
-void generacionProcesosManual(void){
-    /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
-    
-    numProcesoUsuario();
-
-    for (int i = 1; i <= cantProc; i++) {
-        datosProcesoUsuario(i);
-
-        p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
-        p->idProc = i;
-        p->ta = userTa;
-        p->ti = userTi;
-        p->tam = userTam;
-        p->tr = userTi;
-        
-        insertarOrdenado(&primp, p);
     }
 }
 
@@ -233,38 +222,13 @@ void muestrasParciales(Proceso *r){
     }
 }
 
-void menu(void){
-    char respuesta[2];
-    do {
-        printf("¿Desea realizar alguna acción? (Sí/No): ");
-        scanf("%s", respuesta);
-
-        // Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas
-        for (int i = 0; i < strlen(respuesta); i++) {
-            respuesta[i] = tolower(respuesta[i]);
-        }
-
-        if (strcmp(respuesta, "sí") == 0) {
-            // Código para la opción "Sí"
-            printf("Realizando la acción...\n");
-        } else if (strcmp(respuesta, "no") == 0) {
-            // Código para la opción "No"
-            printf("Saliendo del programa.\n");
-            break;
-        } else {
-            printf("Respuesta no válida. Por favor, ingrese 'Sí' o 'No'.\n");
-        }
-
-    } while (1); // Bucle infinito, se sale con la opción "No"
-}
-
 
 int main(void){
     printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
 
     iniciarPunterosAuxiliares();
 
-    generacionProcesosManual();
+    cargaManual();
 
     recorridoListaInicial(primp);
 

@@ -16,19 +16,19 @@ int controlDeEntradas(char *myString, int min, int max) {
 
     do {
         /* Pide al usuario que ingrese un valor entero. */
-        printf("\nIngrese el %s\n", myString);
-        printf("Se aceptan valores comprendidos entre %d y %d\n:", min, max);
+        printf("\nIngrese el %s.\n", myString);
+        printf("Se aceptan valores comprendidos entre %d y %d.\n: ", min, max);
 
         /* Intenta leer un entero desde la entrada estándar. */
         if (scanf("%d", &valor) != 1) {
             /* La entrada no fue un entero válido. */
-            printf("Error: Has ingresado un valor que no es númerico.\n\n");
+            printf("\nError: Has ingresado un valor que no es númerico.\n");
             bandit = false;
             /* ¡Importante! Limpiar el buffer de entrada para evitar bucles infinitos. */
             while (getchar() != '\n');
         
         } else if (!(valor >= min && valor <= max)) {
-            printf("Error: has ingresado un valor numérico fuera del rango permitido.\n\n");
+            printf("\nError: has ingresado un valor numérico fuera del rango permitido.\n");
             bandit = false;
         } else {
             bandit = true;
