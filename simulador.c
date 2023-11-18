@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <string.h>
 
 typedef struct proceso {
     int idProc;
@@ -101,7 +102,7 @@ void recorridoListaInicial(Proceso *r){
     }
 }
 
-void generacionProcesos(void){
+void generacionProcesosManual(void){
     /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
     
     numProcesoUsuario();
@@ -237,7 +238,7 @@ int main(void){
 
     iniciarPunterosAuxiliares();
 
-    generacionProcesos();
+    generacionProcesosManual();
 
     recorridoListaInicial(primp);
 
