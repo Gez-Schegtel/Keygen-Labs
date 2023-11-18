@@ -253,7 +253,7 @@ int main(void){
     int controlTiempo, resTiempo;
     char opc, opcion;
     opc = 'a';
-    opcion = 'a'
+    opcion = 'a';
     controlTiempo = 2;
     resTiempo = tiempoCiclo;
 
