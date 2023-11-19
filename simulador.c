@@ -95,8 +95,8 @@ void cargaManual(void){
 
         p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
         p->idProc = i;
-        p->ta = controlDeEntradas("tiempo de arribo", 0, 500);
-        p->ti = controlDeEntradas("tiempo de irrupción", 1, 500);
+        p->ta = controlDeEntradas("tiempo de arribo", 0, 20);
+        p->ti = controlDeEntradas("tiempo de irrupción", 1, 20);
         acuml += p->ti;
         p->tr = p->ti;
         p->tam = controlDeEntradas("tamaño del proceso", 1, 250);
@@ -157,13 +157,13 @@ void menu(void) {
         } else {
             printf("Respuesta no válida.\nEjecutando el programa nuevamente... \n");
             sleep(2);
-            system("clear");
+            CLEAR_SCREEN();
         }
     } while(1);
 }
 
 void recorridoListaInicial(Proceso *r){
-    // system("clear");
+    // CLEAR_SCREEN();
     printf("Lista de procesos nuevos: \n");
 
     while (r != NULL){
@@ -198,7 +198,7 @@ void iniciarArreglo(void){
 }
 
 void recorridoArreglo(void){
-    // system("clear");
+    // CLEAR_SCREEN();
     printf("\nParticiones de memoria: \n");
     for (int i = 0; i < 4; i++) {
     printf("Particion %d - ID: %d, DirCom: %d, TamPart: %d, IDProcAsig: %d, FragInt: %d, Libre: %s\n",
