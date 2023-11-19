@@ -115,8 +115,8 @@ void cargaAutomatica(void){
 
         p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
         p->idProc = i;
-        p->ta = generacionAleatoria(0, 500);
-        p->ti = generacionAleatoria(1, 500);
+        p->ta = generacionAleatoria(0, 20);
+        p->ti = generacionAleatoria(1, 20);
         acuml += p->ti;
         p->tr = p->ti;
         p->tam = generacionAleatoria(1, 250);
