@@ -1,26 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-
-/* Macros para mejorar la compatibilidad entre GNU/Linux y Windows. */
-#ifdef _WIN32
-#include <windows.h>
-#define CLEAR_SCREEN() system("cls")
-#else
-#define CLEAR_SCREEN() system("clear")
-#endif
-
-#ifdef _WIN32
-#include <windows.h>
-#define SLEEP_MS(x) Sleep(x)
-#else
-#include <unistd.h>
-#define SLEEP_MS(x) usleep((x) * 1000)
-#endif
-
 
 typedef struct proceso {
     int idProc;
@@ -117,7 +101,7 @@ void cargaManual(void){
 int generacionAleatoria(int min, int max){
     srand(time(NULL)); /* Hace que la función rand() genere números distintos con el pasar del tiempo. */
 	int numeroAleatorio = min + rand() % max; /* Generamos un número aleatorio entre un mínimo y un máximo solicitado. */
-    SLEEP_MS(1); /* Dejamos que pase un tiempo para que no se repitan los valores. */
+    sleep(1); /* Dejamos que pase un tiempo para que no se repitan los valores. */
     return(numeroAleatorio);
 }
 
@@ -165,14 +149,14 @@ void menu(void) {
             exit(0);
         } else {
             printf("Respuesta no válida.\nEjecutando el programa nuevamente... \n");
-            SLEEP_MS(2);
-            CLEAR_SCREEN();
+            sleep(2);
+            system("clear");
         }
     } while(1);
 }
 
 void recorridoListaInicial(Proceso *r){
-    // CLEAR_SCREEN();
+    // system("clear");
     printf("Lista de procesos nuevos: \n");
 
     while (r != NULL){
@@ -207,7 +191,7 @@ void iniciarArreglo(void){
 }
 
 void recorridoArreglo(void){
-    // CLEAR_SCREEN();
+    // system("clear");
     printf("\nParticiones de memoria: \n");
     for (int i = 0; i < 4; i++) {
     printf("Particion %d - ID: %d, DirCom: %d, TamPart: %d, IDProcAsig: %d, FragInt: %d, Libre: %s\n",
@@ -298,7 +282,6 @@ void muestrasParciales(Proceso *r){
 }
 
 int main(void){
-
     printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
 
     iniciarPunterosAuxiliares();
