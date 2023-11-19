@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <unistd.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
@@ -13,6 +12,15 @@
 #else
 #define CLEAR_SCREEN() system("clear")
 #endif
+
+#ifdef _WIN32
+#include <windows.h>
+#define SLEEP_MS(x) Sleep(x)
+#else
+#include <unistd.h>
+#define SLEEP_MS(x) usleep((x) * 1000)
+#endif
+
 
 typedef struct proceso {
     int idProc;
@@ -109,7 +117,7 @@ void cargaManual(void){
 int generacionAleatoria(int min, int max){
     srand(time(NULL)); /* Hace que la función rand() genere números distintos con el pasar del tiempo. */
 	int numeroAleatorio = min + rand() % max; /* Generamos un número aleatorio entre un mínimo y un máximo solicitado. */
-    sleep(1); /* Dejamos que pase un tiempo para que no se repitan los valores. */
+    SLEEP_MS(1); /* Dejamos que pase un tiempo para que no se repitan los valores. */
     return(numeroAleatorio);
 }
 
@@ -157,7 +165,7 @@ void menu(void) {
             exit(0);
         } else {
             printf("Respuesta no válida.\nEjecutando el programa nuevamente... \n");
-            sleep(2);
+            SLEEP_MS(2);
             CLEAR_SCREEN();
         }
     } while(1);
