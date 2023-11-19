@@ -292,7 +292,7 @@ int main(void){
         tiempoCiclo++;
         quantum++;
         priml->tr--;
-
+        
     }
     
     return 0;
