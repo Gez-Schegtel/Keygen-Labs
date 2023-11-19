@@ -6,6 +6,13 @@
 #include <ctype.h>
 #include <time.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#define CLEAR_SCREEN() system("cls")
+#else
+#define CLEAR_SCREEN() system("clear")
+#endif
+
 typedef struct proceso {
     int idProc;
     int ta; // tiempo de arribo
