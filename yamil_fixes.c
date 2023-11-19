@@ -23,10 +23,10 @@ typedef struct particion {
 } Particion;
 
 Proceso *primp, *p, *priml, *rl = NULL, *res = NULL, *sl = NULL;
-
+int fin;
 Particion memoria[4];
 
-int cantProc, userTa, userTi, userTam, acuml= 0, tiempoCiclo = 0, multiprog = 0, quantum = 0, tresVeces = 0, x = 1;
+int cantProc, userTa, userTi, userTam, acuml= 0, tiempoCiclo = 0, multiprog = 0, quantum = 0, tresVeces = 0, x = 1, fin = 0;
 
 bool particionRequerida = false;
 
@@ -53,6 +53,7 @@ void datosProcesoUsuario(int i){
 
     printf("Ingrese el tiempo de irrupción >> ");
     scanf("%d", &userTi);
+    fin = fin + userTi;
 
     while (userTi > 1000 || userTi < 1){
         printf("Ha ingresado un tiempo de irrupción incorrecto. Ingrese un valor del 1 al 1000. \n");
@@ -202,20 +203,20 @@ void iniciarPunterosAuxiliares(void){
     priml->prox = NULL;*/
 
     rl = (Proceso *)malloc(sizeof (Proceso));
-    rl->idProc = 0;
-    rl->ta = 0;
-    rl->ti = 0;
-    rl->tam = 0;
-    rl->tr = 0;
-    rl->prox = NULL;
+    // rl->idProc = 0;
+    // rl->ta = 0;
+    // rl->ti = 0;
+    // rl->tam = 0;
+    // rl->tr = 0;
+    // rl->prox = NULL;
 
     res = (Proceso *)malloc(sizeof (Proceso));
-    res->idProc = 0;
-    res->ta = 0;
-    res->ti = 0;
-    res->tam = 0;
-    res->tr = 0;
-    res->prox = NULL;
+    // res->idProc = 0;
+    // res->ta = 0;
+    // res->ti = 0;
+    // res->tam = 0;
+    // res->tr = 0;
+    // res->prox = NULL;
 }
 
 void muestrasParciales(Proceso *r){
@@ -256,8 +257,9 @@ int main(void){
     opcion = 'a';
     controlTiempo = 2;
     resTiempo = tiempoCiclo;
+
     
-    while (tiempoCiclo < 3){
+    while (tiempoCiclo <= fin){
 
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
@@ -287,11 +289,30 @@ int main(void){
                 rl->prox = NULL;
             }
             
-            printf("priml %d \n", priml->idProc);
-            printf("rl %d \n", rl->idProc);
             multiprog++;
         }
-           
+
+        tiempoCiclo++;
+        quantum++;
+        
+    }
+
+    printf("memoria 1 %d \n", memoria[1].idProcAsig);
+    printf("memoria 2 %d \n", memoria[2].idProcAsig);
+    printf("memoria 3 %d \n", memoria[3].idProcAsig);
+
+       
+    return 0;
+}
+
+// priml->tr--;
+
+if (sl !=NULL && !particionRequerida && tresVeces < 3) {
+                best_fit();
+                if (rl->prox != NULL && !particionRequerida) { //esto no anda
+                    sl = rl;
+                }
+            }
         
         // while (sl != NULL && !particionRequerida && tresVeces < 3) {
         //     best_fit();
@@ -300,19 +321,3 @@ int main(void){
         //         sl = sl->prox;
         //     }
         // }
-
-        // printf("memoria 1 %d \n", memoria[1].idProcAsig);
-        // printf("memoria 2 %d \n", memoria[2].idProcAsig);
-        // printf("memoria 3 %d \n", memoria[3].idProcAsig);
-
-
-        tiempoCiclo++;
-        quantum++;
-        // priml->tr--;
-
-        
-        
-    }
-    
-    return 0;
-}
