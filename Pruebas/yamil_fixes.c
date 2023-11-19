@@ -259,62 +259,50 @@ int main(void){
 
     while (tiempoCiclo < 50){
 
-        while (opc == 'a') {
+        while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
-            while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
-
-                if (priml == NULL){
-                    printf("priml == NULL\n");
-                    priml = (Proceso *)malloc(sizeof (Proceso));
-                    priml = primp;
-                    if (primp->prox != NULL){ //Cambio para hacer que si viene un solo proceso, no avance
-                        primp = primp->prox;
-                    } else {
-                        primp = NULL;
-                        free(primp);
-                    };
-                    priml->prox = NULL;
-                    rl = priml;
+            if (priml == NULL){
+                printf("priml == NULL\n");
+                priml = (Proceso *)malloc(sizeof (Proceso));
+                priml = primp;
+                if (primp->prox != NULL){ //Cambio para hacer que si viene un solo proceso, no avance
+                    primp = primp->prox;
                 } else {
-                    printf("priml != NULL\n");
-                    rl->prox = primp;
-                    rl = primp;
-                    if (primp->prox != NULL){
-                        primp = primp->prox;
-                    } else {
-                        primp = NULL;
-                        free(primp);
-                    }
-                    rl->prox = NULL;
+                    primp = NULL;
+                    free(primp);
+                };
+                priml->prox = NULL;
+                rl = priml;
+            } else {
+                printf("priml != NULL\n");
+                rl->prox = primp;
+                rl = primp;
+                if (primp->prox != NULL){
+                    primp = primp->prox;
+                } else {
+                    primp = NULL;
+                    free(primp);
                 }
-                
-                multiprog++;
-            };
+                rl->prox = NULL;
+            }
+            
+            multiprog++;
+        }
+
+        printf("muestro priml %d \n", priml->idProc);
 
             
             /*printf("priml = %d \n", priml->idProc); 
             if (primp != NULL) {
                 printf("primp = %d \n", primp->idProc);
             };*/
-            tiempoCiclo++;
-            quantum++;
-            priml->tr--;
+        tiempoCiclo++;
+        quantum++;
+        priml->tr--;
 
-            if ((resTiempo + controlTiempo) == tiempoCiclo) {
-                muestrasParciales(priml);
-                printf("Precione a para continuar\n");
-                printf("Precione b para cambiar el salto de tiempo\n"); //Opcion a no anda
-                scanf("%s", &opcion);
-                if (opcion == 'b') {
-                    printf("Escriba el salto: \n");
-                    scanf("%d", &controlTiempo);
-                };
-                resTiempo = tiempoCiclo;
-            };
         
-        };
         
-    };
+    }
     
     return 0;
-};
+}
