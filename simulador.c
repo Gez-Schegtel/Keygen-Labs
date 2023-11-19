@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <time.h>
 
+/* Macros para mejorar la compatibilidad entre GNU/Linux y Windows. */
 #ifdef _WIN32
 #include <windows.h>
 #define CLEAR_SCREEN() system("cls")
@@ -289,6 +290,7 @@ void muestrasParciales(Proceso *r){
 }
 
 int main(void){
+
     printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
 
     iniciarPunterosAuxiliares();
