@@ -256,8 +256,8 @@ int main(void){
     opcion = 'a';
     controlTiempo = 2;
     resTiempo = tiempoCiclo;
-
-    while (tiempoCiclo < 50){
+    
+    while (tiempoCiclo < 3){
 
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
@@ -273,6 +273,7 @@ int main(void){
                 };
                 priml->prox = NULL;
                 rl = priml;
+                sl = priml;
             } else {
                 printf("priml != NULL\n");
                 rl->prox = primp;
@@ -286,19 +287,28 @@ int main(void){
                 rl->prox = NULL;
             }
             
+            printf("priml %d \n", priml->idProc);
+            printf("rl %d \n", rl->idProc);
             multiprog++;
         }
+           
+        
+        // while (sl != NULL && !particionRequerida && tresVeces < 3) {
+        //     best_fit();
+        //     tresVeces++;
+        //     if (sl->prox != NULL && !particionRequerida) {
+        //         sl = sl->prox;
+        //     }
+        // }
 
-        printf("muestro priml %d \n", priml->idProc);
+        // printf("memoria 1 %d \n", memoria[1].idProcAsig);
+        // printf("memoria 2 %d \n", memoria[2].idProcAsig);
+        // printf("memoria 3 %d \n", memoria[3].idProcAsig);
 
-            
-            /*printf("priml = %d \n", priml->idProc); 
-            if (primp != NULL) {
-                printf("primp = %d \n", primp->idProc);
-            };*/
+
         tiempoCiclo++;
         quantum++;
-        priml->tr--;
+        // priml->tr--;
 
         
         
