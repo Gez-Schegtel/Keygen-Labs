@@ -74,7 +74,7 @@ void insertarOrdenado(Proceso **cabeza, Proceso *nuevo){
     Proceso *actual = *cabeza;
     Proceso *anterior = NULL;
 
-    while (actual != NULL && actual->ta < nuevo->ta) {
+    while (actual != NULL && actual->ta <= nuevo->ta) {
         anterior = actual;
         actual = actual->prox;
     }
@@ -250,13 +250,6 @@ int main(void){
 
     recorridoArreglo();
 
-    int controlTiempo, resTiempo;
-    char opc, opcion;
-    opc = 'a';
-    opcion = 'a';
-    controlTiempo = 2;
-    resTiempo = tiempoCiclo;
-
     while (tiempoCiclo < 50){
 
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
@@ -300,8 +293,6 @@ int main(void){
         quantum++;
         priml->tr--;
 
-        
-        
     }
     
     return 0;
