@@ -267,3 +267,20 @@ int main(void){
        
     return 0;
 }
+
+// priml->tr--;
+
+// if (sl !=NULL && !particionRequerida && tresVeces < 3) {
+//              best_fit();
+//              if (rl->prox != NULL && !particionRequerida) { //esto no anda
+//                  sl = rl;
+//              }
+//          }
+//      
+        // while (sl != NULL && !particionRequerida && tresVeces < 3) {
+        //     best_fit();
+        //     tresVeces++;
+        //     if (sl->prox != NULL && !particionRequerida) {
+        //         sl = sl->prox;
+        //     }    iniciarPunterosAuxiliares();
+        // }
