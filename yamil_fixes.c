@@ -22,7 +22,7 @@ typedef struct particion {
     bool libre;
 } Particion;
 
-Proceso *primp, *p, *rl, *priml, *sl; /* Estos procesos sin el Marroc valen NULL. */
+Proceso *primp, *p, *priml, *rl, *sl;
 
 Particion memoria[4];
 
@@ -251,7 +251,7 @@ int main(void){
                 best_fit();
                 printf("entro \n");
                 if (!particionRequerida && rl != NULL) {
-                    sl = rl;
+                    sl = sl->prox;
                 }
                 
             }
