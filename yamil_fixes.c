@@ -22,7 +22,7 @@ typedef struct particion {
     bool libre;
 } Particion;
 
-Proceso *primp, *p, *priml = NULL, *rl = NULL, *res = NULL, *sl = NULL;
+Proceso *primp, *p, *priml, *rl, *sl;
 
 Particion memoria[4];
 
@@ -246,7 +246,7 @@ int main(void){
                     free(primp);
                 }
                 rl->prox = NULL; /*Esto queda alpedo sólo en la último proceso de la cola*/
-                // sl = rl;
+                sl = rl;
             }
             
             if (sl != NULL && !particionRequerida) {
