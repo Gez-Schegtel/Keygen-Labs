@@ -168,12 +168,12 @@ void asignarEnMemoria(int index, Proceso *sl, bool particionRequerida) {
 
 void best_fit(void) {
     // Algoritmo Best Fit
-    if (rl->tam <= 60 && memoria[1].libre) {
-        asignarEnMemoria(1, rl, particionRequerida);
-    } else if (rl->tam > 60 && rl->tam <= 120 && memoria[2].libre) {
-        asignarEnMemoria(2, rl, particionRequerida);
-    } else if (rl->tam > 120 && rl->tam <= 250 && memoria[3].libre) {
-        asignarEnMemoria(3, rl, particionRequerida);
+    if (sl->tam <= 60 && memoria[1].libre) {
+        asignarEnMemoria(1, sl, particionRequerida);
+    } else if (sl->tam > 60 && sl->tam <= 120 && memoria[2].libre) {
+        asignarEnMemoria(2, sl, particionRequerida);
+    } else if (sl->tam > 120 && sl->tam <= 250 && memoria[3].libre) {
+        asignarEnMemoria(3, sl, particionRequerida);
     } else {
         // Esto controla si la partición que algún proceso requiere está ocupada
         particionRequerida = true;
@@ -196,8 +196,8 @@ void liberarMemoria(void) {
             memoria[i].fragInt = 0;
         }
     }
+    particionRequerida = false;
 }
-
 
 void muestrasParciales(Proceso *r){
     printf("\nInstante número: %d \n", tiempoCiclo);
@@ -232,7 +232,6 @@ void randomAccessMemory(void){
             primp = primp->prox;
         } else {
             primp = NULL;
-            free(primp);
         };
         priml->prox = NULL;
         rl = priml;
@@ -245,19 +244,18 @@ void randomAccessMemory(void){
             primp = primp->prox;
         } else {
             primp = NULL;
-            free(primp);
         }
         rl->prox = NULL; /*Esto queda alpedo sólo en la último proceso de la cola*/
         // sl = rl;
     }
     
-    if (sl != NULL && !particionRequerida) {
-        best_fit();
-        if (particionRequerida) {
-            sl = rl;
-        }
-        
-    }
+    // if (sl != NULL && !particionRequerida) {
+    //     best_fit();
+    //     if (particionRequerida) {
+    //         sl = rl;
+    //     }
+    //     
+    // }
 }
 
 int main(void){
@@ -275,6 +273,15 @@ int main(void){
             randomAccessMemory();
 
             multiprog++;
+        }
+                
+        tresVeces = 0;
+        while (sl != NULL && !particionRequerida && tresVeces < 3) {
+            best_fit();
+            tresVeces++;
+            if (sl->prox != NULL && !particionRequerida) {
+                sl = sl->prox;
+            }
         }
         
         muestrasParciales(priml);
@@ -321,10 +328,11 @@ int main(void){
         }
 
         if (condiciones()) {
+            muestrasParciales(priml);
             break;
         }
     }
     
-    return 0;
+    return(0);
 }
 
