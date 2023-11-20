@@ -22,7 +22,7 @@ typedef struct particion {
     bool libre;
 } Particion;
 
-Proceso *primp, *p, *priml, *rl, *sl;
+Proceso *primp, *p, *priml, *rl, *sl, *res;
 
 Particion memoria[4];
 
@@ -180,32 +180,48 @@ void best_fit(void) {
     }
 }
 
-// bool condiciones(void){
-//     if (memoria[1].libre && memoria[2].libre && memoria[3].libre && priml == NULL && rl == NULL && res == NULL){
-//         return(true);
-//     } else {
-//         return(false);
-//     }
-// }
+bool condiciones(void) {
+    if (memoria[1].libre && memoria[2].libre && memoria[3].libre && priml == NULL && primp == NULL){
+        return(true);
+    } else {
+        return(false);
+    }
+}
+
+void liberarMemoria(void) {
+    for (int i = 1; i <= 3; i++) {
+        if (priml->idProc == memoria[i].idProcAsig) { //liberando memoria 
+            memoria[i].libre = true;
+            memoria[i].idProcAsig = 0;
+            memoria[i].fragInt = 0;
+        }
+    }
+}
 
 
 void muestrasParciales(Proceso *r){
     printf("\nInstante número: %d \n", tiempoCiclo);
-    printf("Proceso en ejecución: %d \n", r->idProc);
-
-    for (int i = 1; i < 4; i++){
-        printf("Id de partición: %d \n", i);
-        printf("Tamaño: %d \n", memoria[i].tamPart);
-        printf("Dirección de comienzo: %d \n", memoria[i].dirCom);
-
-        if (!memoria[i].libre){
-            printf("Proceso asignado: %d \n", memoria[i].idProcAsig);
-            printf("Fragmentación interna: %d \n", memoria[i].tamPart - r->tam);
-        } else {
-            printf("Proceso asignado: ∅ \n");
-            printf("Fragmentación interna: ∅ \n");
-        }
+    if (r->tr > 0) {
+        printf("Proceso en ejecución: %d \n", r->idProc);
+    } else {
+        printf("Proceso en ejecución: no hay perrito \n");
     }
+    
+    mostrarMemoria();
+
+    // for (int i = 1; i < 4; i++){
+    //     printf("Id de partición: %d \n", i);
+    //     printf("Tamaño: %d \n", memoria[i].tamPart);
+    //     printf("Dirección de comienzo: %d \n", memoria[i].dirCom);
+
+    //     if (!memoria[i].libre){
+    //         printf("Proceso asignado: %d \n", memoria[i].idProcAsig);
+    //         printf("Fragmentación interna: %d \n", memoria[i].tamPart - r->tam);
+    //     } else {
+    //         printf("Proceso asignado: ∅ \n");
+    //         printf("Fragmentación interna: ∅ \n");
+    //     }
+    // }
 }
 
 int main(void){
@@ -218,7 +234,44 @@ int main(void){
     iniciarArreglo();
 
     
-    while (tiempoCiclo <= acumlTi){
+    while (!condiciones) {
+
+        if (quantum == 2 && priml->prox != NULL) {
+            
+            liberarMemoria();
+            res = priml;
+            priml = priml->prox;
+            res->prox = NULL;
+            quantum = 0;
+            
+            /* Verificamos si nos queda tiempo de irrupción. */
+            if (res->tr > 0){
+                rl->prox = res;
+            } else {
+                if (rl->tr == 0){
+                    multiprog--;
+                }
+            }
+
+        } else {
+            // Aquí terminó un proceso sin que termine el quantum, es decir, cuando es 1
+            if (quantum < 2 && priml->tr == 0 && priml->prox != NULL){
+                liberarMemoria();
+                res = priml;
+                priml = priml->prox;
+                res->prox = NULL;
+                multiprog--;
+            } else {
+                if (priml->tr == 0 && priml->prox == NULL){
+                    // Aquí termina un proceso y es el ÚLTIMO de todos
+                    liberarMemoria();
+                    //priml = NULL; // Hace que "deje de apuntar" a la dirección que originalmente apuntaba
+                    //rl = NULL;
+                    //res = NULL;
+                    
+                }
+            }
+        }
 
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
@@ -249,35 +302,23 @@ int main(void){
                 // sl = rl;
             }
             
-
-
             if (sl != NULL && !particionRequerida) {
                 best_fit();
                 if (particionRequerida) {
                     sl = rl;
                 }
-
-                // printf("entro \n");
-                // if (!particionRequerida && rl != NULL) {
-                //     sl = sl->prox;
-                // }
                 
             }
 
             multiprog++;
         }
         
-
         tiempoCiclo++;
         quantum++;
-
+        priml->tr--;
+        muestrasParciales(priml);
     }
     
-    mostrarMemoria();
-
-
-       
     return 0;
 }
 
-// priml->tr--;
