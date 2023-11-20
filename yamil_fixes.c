@@ -26,7 +26,7 @@ Proceso *primp, *p, *rl, *priml, *sl; /* Estos procesos sin el Marroc valen NULL
 
 Particion memoria[4];
 
-int cantProc, userTa, userTi, userTam, tresVeces, acumlTi, tiempoCiclo = 0, multiprog = 0, quantum = 0, x = 1;
+int cantProc, userTa, userTi, userTam, tresVeces, acumlTi, tiempoCiclo = 0, multiprog = 0, quantum = 0;
 
 bool particionRequerida = false;
 
