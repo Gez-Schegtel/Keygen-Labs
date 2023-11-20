@@ -26,7 +26,7 @@ Proceso *primp, *p, *priml, *rl, *sl, *res;
 
 Particion memoria[4];
 
-int cantProc, userTa, userTi, userTam, tresVeces, acumlTi, tiempoCiclo = 0, multiprog = 0, quantum = 0, x = 1;
+int cantProc, userTa, userTi, userTam, tresVeces, acumlTi, tiempoCiclo = 0, multiprog = 0, quantum = 0;
 
 bool particionRequerida = false;
 
@@ -224,6 +224,42 @@ void muestrasParciales(Proceso *r){
     // }
 }
 
+void randomAccessMemory(void){
+    if (priml == NULL){
+        //printf("priml == NULL\n");
+        priml = primp;
+        if (primp->prox != NULL){ //Cambio para hacer que si viene un solo proceso, no avance
+            primp = primp->prox;
+        } else {
+            primp = NULL;
+            free(primp);
+        };
+        priml->prox = NULL;
+        rl = priml;
+        sl = priml; /* Esto queda así para no asignar varias veces sl para hacer la asignación en memoria. */
+    } else {
+        //printf("priml != NULL\n");
+        rl->prox = primp;
+        rl = primp;
+        if (primp->prox != NULL){
+            primp = primp->prox;
+        } else {
+            primp = NULL;
+            free(primp);
+        }
+        rl->prox = NULL; /*Esto queda alpedo sólo en la último proceso de la cola*/
+        // sl = rl;
+    }
+    
+    if (sl != NULL && !particionRequerida) {
+        best_fit();
+        if (particionRequerida) {
+            sl = rl;
+        }
+        
+    }
+}
+
 int main(void){
     printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
 
@@ -232,12 +268,24 @@ int main(void){
     recorridoListaInicial(primp);
 
     iniciarArreglo();
-
     
-    while (!condiciones) {
+    int x = 1;
+    while (x == 1 || !condiciones) {
+        x++;
+        
+        while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
+            randomAccessMemory();
+
+            multiprog++;
+        }
+        
+        tiempoCiclo++;
+        quantum++;
+        priml->tr--;
+        muestrasParciales(priml);
+    
         if (quantum == 2 && priml->prox != NULL) {
-            
             liberarMemoria();
             res = priml;
             priml = priml->prox;
@@ -272,51 +320,6 @@ int main(void){
                 }
             }
         }
-
-        while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
-
-            if (priml == NULL){
-                //printf("priml == NULL\n");
-                priml = (Proceso *)malloc(sizeof (Proceso));
-                priml = primp;
-                if (primp->prox != NULL){ //Cambio para hacer que si viene un solo proceso, no avance
-                    primp = primp->prox;
-                } else {
-                    primp = NULL;
-                    free(primp);
-                };
-                priml->prox = NULL;
-                rl = priml;
-                sl = priml; /* Esto queda así para no asignar varias veces sl para hacer la asignación en memoria. */
-            } else {
-                //printf("priml != NULL\n");
-                rl->prox = primp;
-                rl = primp;
-                if (primp->prox != NULL){
-                    primp = primp->prox;
-                } else {
-                    primp = NULL;
-                    free(primp);
-                }
-                rl->prox = NULL; /*Esto queda alpedo sólo en la último proceso de la cola*/
-                // sl = rl;
-            }
-            
-            if (sl != NULL && !particionRequerida) {
-                best_fit();
-                if (particionRequerida) {
-                    sl = rl;
-                }
-                
-            }
-
-            multiprog++;
-        }
-        
-        tiempoCiclo++;
-        quantum++;
-        priml->tr--;
-        muestrasParciales(priml);
     }
     
     return 0;
