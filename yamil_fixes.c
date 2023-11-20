@@ -168,12 +168,12 @@ void asignarEnMemoria(int index, Proceso *sl, bool particionRequerida) {
 
 void best_fit(void) {
     // Algoritmo Best Fit
-    if (sl->tam <= 60 && memoria[1].libre) {
-        asignarEnMemoria(1, sl, particionRequerida);
-    } else if (sl->tam > 60 && sl->tam <= 120 && memoria[2].libre) {
-        asignarEnMemoria(2, sl, particionRequerida);
-    } else if (sl->tam > 120 && sl->tam <= 250 && memoria[3].libre) {
-        asignarEnMemoria(3, sl, particionRequerida);
+    if (rl->tam <= 60 && memoria[1].libre) {
+        asignarEnMemoria(1, rl, particionRequerida);
+    } else if (rl->tam > 60 && rl->tam <= 120 && memoria[2].libre) {
+        asignarEnMemoria(2, rl, particionRequerida);
+    } else if (rl->tam > 120 && rl->tam <= 250 && memoria[3].libre) {
+        asignarEnMemoria(3, rl, particionRequerida);
     } else {
         // Esto controla si la partición que algún proceso requiere está ocupada
         particionRequerida = true;
@@ -223,7 +223,7 @@ int main(void){
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
             if (priml == NULL){
-                printf("priml == NULL\n");
+                //printf("priml == NULL\n");
                 priml = (Proceso *)malloc(sizeof (Proceso));
                 priml = primp;
                 if (primp->prox != NULL){ //Cambio para hacer que si viene un solo proceso, no avance
@@ -236,7 +236,7 @@ int main(void){
                 rl = priml;
                 sl = priml; /* Esto queda así para no asignar varias veces sl para hacer la asignación en memoria. */
             } else {
-                printf("priml != NULL\n");
+                //printf("priml != NULL\n");
                 rl->prox = primp;
                 rl = primp;
                 if (primp->prox != NULL){
@@ -246,36 +246,33 @@ int main(void){
                     free(primp);
                 }
                 rl->prox = NULL; /*Esto queda alpedo sólo en la último proceso de la cola*/
-                sl = rl;
+                // sl = rl;
             }
             
+
+
             if (sl != NULL && !particionRequerida) {
                 best_fit();
-                printf("entro \n");
-                if (!particionRequerida && rl != NULL) {
-                    sl = sl->prox;
+                if (particionRequerida) {
+                    sl = rl;
                 }
+
+                // printf("entro \n");
+                // if (!particionRequerida && rl != NULL) {
+                //     sl = sl->prox;
+                // }
                 
             }
 
             multiprog++;
         }
-        printf("entro2 \n");
-        // tresVeces = 0;
-        // while (sl != NULL && !particionRequerida && tresVeces < 3) {
-        //     best_fit();
-        //     tresVeces++;
-
-        //     if (sl->prox != NULL && !particionRequerida) {
-        //         sl = sl->prox;
-        //     }
-        // }
+        
 
         tiempoCiclo++;
         quantum++;
 
     }
-    printf("entro3 \n");
+    
     mostrarMemoria();
 
 
@@ -284,18 +281,3 @@ int main(void){
 }
 
 // priml->tr--;
-
-// if (sl !=NULL && !particionRequerida && tresVeces < 3) {
-//              best_fit();
-//              if (rl->prox != NULL && !particionRequerida) { //esto no anda
-//                  sl = rl;
-//              }
-//          }
-//      
-        // while (sl != NULL && !particionRequerida && tresVeces < 3) {
-        //     best_fit();
-        //     tresVeces++;
-        //     if (sl->prox != NULL && !particionRequerida) {
-        //         sl = sl->prox;
-        //     }    iniciarPunterosAuxiliares();
-        // }
