@@ -233,7 +233,7 @@ int main(void){
                     free(primp);
                 };
                 priml->prox = NULL;
-                // rl = priml;
+                rl = priml;
                 sl = priml; /* Esto queda así para no asignar varias veces sl para hacer la asignación en memoria. */
             } else {
                 printf("priml != NULL\n");
@@ -253,7 +253,7 @@ int main(void){
                 best_fit();
                 printf("entro \n");
                 if (!particionRequerida && rl != NULL) {
-                    sl = rl;
+                    sl = sl->prox;
                 }
                 
             }
