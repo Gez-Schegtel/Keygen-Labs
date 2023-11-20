@@ -22,7 +22,7 @@ typedef struct particion {
     bool libre;
 } Particion;
 
-Proceso *primp, *p, *priml = NULL, *rl = NULL, *res = NULL, *sl = NULL;
+Proceso *primp, *p, *rl, *priml, *sl; /* Estos procesos sin el Marroc valen NULL. */
 
 Particion memoria[4];
 
@@ -217,23 +217,21 @@ int main(void){
 
     iniciarArreglo();
 
-    
     while (tiempoCiclo <= acumlTi){
 
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
             if (priml == NULL){
                 printf("priml == NULL\n");
-                priml = (Proceso *)malloc(sizeof (Proceso));
                 priml = primp;
                 if (primp->prox != NULL){ //Cambio para hacer que si viene un solo proceso, no avance
                     primp = primp->prox;
                 } else {
-                    primp = NULL;
                     free(primp);
+                    primp = NULL;
                 };
                 priml->prox = NULL;
-                // rl = priml;
+                rl = priml;
                 sl = priml; /* Esto queda así para no asignar varias veces sl para hacer la asignación en memoria. */
             } else {
                 printf("priml != NULL\n");
@@ -242,11 +240,11 @@ int main(void){
                 if (primp->prox != NULL){
                     primp = primp->prox;
                 } else {
-                    primp = NULL;
                     free(primp);
+                    primp = NULL;
                 }
                 rl->prox = NULL; /*Esto queda alpedo sólo en la último proceso de la cola*/
-                // sl = rl;
+                sl = rl;
             }
             
             if (sl != NULL && !particionRequerida) {
@@ -260,6 +258,7 @@ int main(void){
 
             multiprog++;
         }
+
         printf("entro2 \n");
         // tresVeces = 0;
         // while (sl != NULL && !particionRequerida && tresVeces < 3) {
@@ -278,8 +277,6 @@ int main(void){
     printf("entro3 \n");
     mostrarMemoria();
 
-
-       
     return 0;
 }
 
