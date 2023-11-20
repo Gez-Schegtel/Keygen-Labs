@@ -28,7 +28,7 @@ Particion memoria[4];
 
 int cantProc, userTa, userTi, userTam, tresVeces, acumlTi, tiempoCiclo = 0, multiprog = 0, quantum = 0;
 
-bool particionRequerida = false;
+bool particionRequerida = false, fin = false;
 
 void numProcesoUsuario(void){
     printf("Ingrese el número de procesos que desee planificar: ");
@@ -181,7 +181,7 @@ void best_fit(void) {
 }
 
 bool condiciones(void) {
-    if (memoria[1].libre && memoria[2].libre && memoria[3].libre && priml == NULL && primp == NULL){
+    if (memoria[1].libre && memoria[2].libre && memoria[3].libre && fin && primp == NULL){
         return(true);
     } else {
         return(false);
@@ -269,10 +269,7 @@ int main(void){
 
     iniciarArreglo();
     
-    int x = 1;
-    while (x == 1 || !condiciones) {
-        x++;
-        
+    while (1) {        
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
             randomAccessMemory();
@@ -280,10 +277,11 @@ int main(void){
             multiprog++;
         }
         
+        muestrasParciales(priml);
+
         tiempoCiclo++;
         quantum++;
         priml->tr--;
-        muestrasParciales(priml);
     
         if (quantum == 2 && priml->prox != NULL) {
             liberarMemoria();
@@ -313,12 +311,17 @@ int main(void){
                 if (priml->tr == 0 && priml->prox == NULL){
                     // Aquí termina un proceso y es el ÚLTIMO de todos
                     liberarMemoria();
+                    fin = true;
                     //priml = NULL; // Hace que "deje de apuntar" a la dirección que originalmente apuntaba
                     //rl = NULL;
                     //res = NULL;
                     
                 }
             }
+        }
+
+        if (condiciones()) {
+            break;
         }
     }
     
