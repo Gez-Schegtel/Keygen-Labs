@@ -217,7 +217,6 @@ int main(void){
 
     iniciarArreglo();
 
-    mostrarMemoria();
     
     while (tiempoCiclo <= acumlTi){
 
@@ -234,7 +233,7 @@ int main(void){
                     free(primp);
                 };
                 priml->prox = NULL;
-                rl = priml;
+                // rl = priml;
                 sl = priml; /* Esto queda así para no asignar varias veces sl para hacer la asignación en memoria. */
             } else {
                 printf("priml != NULL\n");
@@ -247,27 +246,36 @@ int main(void){
                     free(primp);
                 }
                 rl->prox = NULL; /*Esto queda alpedo sólo en la último proceso de la cola*/
+                // sl = rl;
             }
             
+            if (sl != NULL && !particionRequerida) {
+                best_fit();
+                printf("entro \n");
+                if (!particionRequerida && rl != NULL) {
+                    sl = rl;
+                }
+                
+            }
 
             multiprog++;
         }
+        printf("entro2 \n");
+        // tresVeces = 0;
+        // while (sl != NULL && !particionRequerida && tresVeces < 3) {
+        //     best_fit();
+        //     tresVeces++;
 
-        tresVeces = 0;
-        while (sl != NULL && !particionRequerida && tresVeces < 3) {
-            best_fit();
-            tresVeces++;
-
-            if (sl->prox != NULL && !particionRequerida) {
-                sl = sl->prox;
-            }
-        }
+        //     if (sl->prox != NULL && !particionRequerida) {
+        //         sl = sl->prox;
+        //     }
+        // }
 
         tiempoCiclo++;
         quantum++;
 
     }
-
+    printf("entro3 \n");
     mostrarMemoria();
 
 
