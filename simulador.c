@@ -24,11 +24,11 @@ typedef struct particion {
     bool libre;
 } Particion;
 
-Proceso *primp, *p, *priml, *rl = NULL, *res = NULL, *sl = NULL;
+Proceso *primp, *p, *priml = NULL, *rl = NULL, *res = NULL, *sl = NULL;
 
 Particion memoria[4];
 
-int cantProc, userTa, userTi, userTam, acuml= 0, tiempoCiclo = 0, multiprog = 0, quantum = 0, tresVeces = 0, x = 1;
+int cantProc, userTa, userTi, userTam, acumlTi= 0, tiempoCiclo = 0, multiprog = 0, quantum = 0, tresVeces, x = 1;
 
 bool particionRequerida = false;
 
@@ -90,7 +90,7 @@ void cargaManual(void){
         p->idProc = i;
         p->ta = controlDeEntradas("tiempo de arribo", 0, 20);
         p->ti = controlDeEntradas("tiempo de irrupción", 1, 20);
-        acuml += p->ti;
+        acumlTi += p->ti;
         p->tr = p->ti;
         p->tam = controlDeEntradas("tamaño del proceso", 1, 250);
         
@@ -117,7 +117,7 @@ void cargaAutomatica(void){
         p->idProc = i;
         p->ta = generacionAleatoria(0, 20);
         p->ti = generacionAleatoria(1, 20);
-        acuml += p->ti;
+        acumlTi += p->ti;
         p->tr = p->ti;
         p->tam = generacionAleatoria(1, 250);
         
@@ -190,8 +190,7 @@ void iniciarArreglo(void){
     memoria[3].tamPart = 250;
 }
 
-void recorridoArreglo(void){
-    // system("clear");
+void mostrarMemoria(void){
     printf("\nParticiones de memoria: \n");
     for (int i = 0; i < 4; i++) {
     printf("Particion %d - ID: %d, DirCom: %d, TamPart: %d, IDProcAsig: %d, FragInt: %d, Libre: %s\n",
@@ -236,32 +235,6 @@ bool condiciones(void){
     }
 }
 
-void iniciarPunterosAuxiliares(void){
-    priml = (Proceso *)malloc(sizeof (Proceso));
-    priml->idProc = 0;
-    priml->ta = 0;
-    priml->ti = 0;
-    priml->tam = 0;
-    priml->tr = 0;
-    priml->prox = NULL;
-
-    rl = (Proceso *)malloc(sizeof (Proceso));
-    rl->idProc = 0;
-    rl->ta = 0;
-    rl->ti = 0;
-    rl->tam = 0;
-    rl->tr = 0;
-    rl->prox = NULL;
-
-    res = (Proceso *)malloc(sizeof (Proceso));
-    res->idProc = 0;
-    res->ta = 0;
-    res->ti = 0;
-    res->tam = 0;
-    res->tr = 0;
-    res->prox = NULL;
-}
-
 void muestrasParciales(Proceso *r){
     printf("\nInstante número: %d \n", tiempoCiclo);
     printf("Proceso en ejecución: %d \n", r->idProc);
@@ -281,19 +254,59 @@ void muestrasParciales(Proceso *r){
     }
 }
 
-int main(void){
-    printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
+void yamilTesting(void){
+    while (tiempoCiclo <= acumlTi){
 
-    iniciarPunterosAuxiliares();
+        while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
-    menu();
+            if (priml == NULL){
+                printf("priml == NULL\n");
+                priml = (Proceso *)malloc(sizeof (Proceso));
+                priml = primp;
+                if (primp->prox != NULL){ //Cambio para hacer que si viene un solo proceso, no avance
+                    primp = primp->prox;
+                } else {
+                    primp = NULL;
+                    free(primp);
+                };
+                priml->prox = NULL;
+                rl = priml;
+                sl = priml; /* Esto queda así para no asignar varias veces sl para hacer la asignación en memoria. */
+            } else {
+                printf("priml != NULL\n");
+                rl->prox = primp;
+                rl = primp;
+                if (primp->prox != NULL){
+                    primp = primp->prox;
+                } else {
+                    primp = NULL;
+                    free(primp);
+                }
+                rl->prox = NULL; /*Esto queda alpedo sólo en la último proceso de la cola*/
+            }
+            
+            multiprog++;
+        }
 
-    recorridoListaInicial(primp);
+        tresVeces = 0;
+        while (sl != NULL && !particionRequerida && tresVeces < 3) {
+            best_fit();
+            tresVeces++;
 
-    iniciarArreglo();
+            if (sl->prox != NULL && !particionRequerida) {
+                sl = sl->prox;
+            }
+        }
 
-    recorridoArreglo();
+        tiempoCiclo++;
+        quantum++;
 
+    }
+
+    mostrarMemoria();
+}
+
+void originalSim(void){
     while (!condiciones() || tiempoCiclo == 0){
         if (quantum == 2 && priml->prox != NULL){
             res = priml;
@@ -352,7 +365,6 @@ int main(void){
             multiprog++;
         }
 
-        sl = priml;
         while (sl != NULL && !particionRequerida && tresVeces < 3) {
             best_fit();
             tresVeces++;
@@ -366,6 +378,21 @@ int main(void){
         quantum++;
         priml->tr--;
     }
+
+}
+
+int main(void){
+    printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
+
+    menu();
+
+    recorridoListaInicial(primp);
+
+    iniciarArreglo();
+
+    mostrarMemoria();
+
+    yamilTesting();
 
     return 0;
 };
