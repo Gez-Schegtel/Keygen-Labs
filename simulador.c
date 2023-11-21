@@ -126,7 +126,7 @@ void cargaAutomatica(void){
 }
 
 void menu(void) {
-    char respuesta[6];
+    char respuesta[7];
 
     do {
         printf("Para cargar manualmente los procesos, ingrese 'manual'. \nSi prefiere generar los procesos de manera automática, ingrese 'auto'. \nSi desea detener la operación, ingrese 'quit'. \n:");
