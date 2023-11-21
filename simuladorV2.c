@@ -126,22 +126,24 @@ void cargaAutomatica(void){
 }
 
 void menu(void) {
-    char respuesta[6];
+    char respuesta[7]; /* Siempre tiene que tener un espacio "de más" que la palabra más larga. */
 
     do {
         printf("Para cargar manualmente los procesos, ingrese 'manual'. \nSi prefiere generar los procesos de manera automática, ingrese 'auto'. \nSi desea detener la operación, ingrese 'quit'. \n:");
         scanf("%s", respuesta);
 
-        /* Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas */
-        for (int i = 0; i < strlen(respuesta); i++) {
+        /* Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas. '\0' es el caracter NULL que indica el fin de un string. */
+        for (int i = 0; respuesta[i] != '\0'; i++) {
             respuesta[i] = tolower(respuesta[i]);
         }
 
-        /* Si los dos strings son iguales, la función strcmp devuelve 0 */
+        // Comparar cadenas sin usar strcmp
         if (strcmp(respuesta, "manual") == 0) {
+            printf("Cargando manualmente...\n");
             cargaManual();
             break;
         } else if (strcmp(respuesta, "auto") == 0) {
+            printf("Cargando automáticamente...\n");
             cargaAutomatica();
             break;
         } else if (strcmp(respuesta, "quit") == 0) {
@@ -149,10 +151,11 @@ void menu(void) {
             exit(0);
         } else {
             printf("Respuesta no válida.\nEjecutando el programa nuevamente... \n");
-            sleep(2);
-            system("clear");
+            system("pause"); /* Arroja el mensaje de apretar una tecla para continuar. */
+            system("cls");
         }
-    } while(1);
+
+    } while (1);
 }
 
 void recorridoListaInicial(Proceso *r){
