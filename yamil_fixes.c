@@ -102,24 +102,24 @@ void recorridoListaInicial(Proceso *r){
     }
 }
 
-// void generacionProcesosManual(void){
-//     /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
+void generacionProcesosManual(void){
+    /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
     
-//     numProcesoUsuario();
+    numProcesoUsuario();
 
-//     for (int i = 1; i <= cantProc; i++) {
-//         datosProcesoUsuario(i);
+    for (int i = 1; i <= cantProc; i++) {
+        datosProcesoUsuario(i);
 
-//         p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
-//         p->idProc = i;
-//         p->ta = userTa;
-//         p->ti = userTi;
-//         p->tam = userTam;
-//         p->tr = userTi;
+        p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+        p->idProc = i;
+        p->ta = userTa;
+        p->ti = userTi;
+        p->tam = userTam;
+        p->tr = userTi;
         
-//         insertarOrdenado(&primp, p);
-//     }
-// }
+        insertarOrdenado(&primp, p);
+    }
+}
 
 void cargaTesting(void){
     /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
@@ -314,7 +314,7 @@ void verificarFinProceso(void) {
         res = priml;
         priml = priml->prox;
         
-        if (rl->prox != NULL){
+        while (rl->prox != NULL){
             rl = rl->prox;
         }
         
@@ -328,6 +328,10 @@ void verificarFinProceso(void) {
             if (rl->tr == 0){
                 multiprog--;
             }
+        }
+        
+        while (rl->prox != NULL){
+            rl = rl->prox;
         }
     } else {
         if (quantum == 2 && priml->tr > 0 && priml->prox == NULL) {
@@ -343,7 +347,7 @@ void verificarFinProceso(void) {
                 quantum = 0;
                 multiprog--;
 
-                if (rl->prox != NULL){
+                while (rl->prox != NULL){
                     rl = rl->prox;
                 }
 
@@ -383,6 +387,7 @@ int main(void){
         }
                 
         tresVeces = 0;
+        sl = priml;
         while (sl != NULL && tresVeces < 3) {
             best_fit();
             tresVeces++;
