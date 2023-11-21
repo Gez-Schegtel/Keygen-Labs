@@ -426,7 +426,7 @@ void yamilTesting(void){
 
     int saltoTiempo, resTiempo;
     int tecla = 13;
-    saltoTiempo = 1;
+    saltoTiempo = 0;
     resTiempo = tiempoCiclo;
 
     while (tecla == 13) {
@@ -450,6 +450,9 @@ void yamilTesting(void){
         if (priml != NULL) {
             if ((resTiempo + saltoTiempo) == tiempoCiclo) {
                 muestrasParciales(priml);
+                if (saltoTiempo == 0){
+                    saltoTiempo = 1;
+                }
                 printf("\n");
                 printf("Presione:\n");
                 printf("-Enter para continuar\n");
