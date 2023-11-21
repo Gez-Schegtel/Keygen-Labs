@@ -451,7 +451,7 @@ void yamilTesting(void){
             if ((resTiempo + saltoTiempo) == tiempoCiclo) {
                 muestrasParciales(priml);
                 printf("\n");
-                printf("Precione:\n");
+                printf("Presione:\n");
                 printf("-Enter para continuar\n");
                 printf("-Backspace para cambiar el salto de tiempo (Actual: %d)\n", saltoTiempo);
                 printf("-Escape para salir\n");
@@ -474,6 +474,7 @@ void yamilTesting(void){
                 resTiempo = tiempoCiclo;
             }
             priml->tr--;
+
         } else {
             printf("Instante %d: \n", tiempoCiclo);
             printf("No hay procesos en la cola de listos. No hay procesos en ejecución. No hay procesos en memoria.");
