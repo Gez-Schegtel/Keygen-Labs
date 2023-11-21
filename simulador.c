@@ -24,13 +24,13 @@ typedef struct particion {
     bool libre;
 } Particion;
 
-Proceso *primp, *p, *priml, *rl = NULL, *res = NULL, *sl = NULL;
+Proceso *primp, *p, *priml, *rl, *sl, *res;
 
 Particion memoria[4];
 
-int cantProc, userTa, userTi, userTam, acuml= 0, tiempoCiclo = 0, multiprog = 0, quantum = 0, tresVeces = 0, x = 1;
+int cantProc, userTa, userTi, userTam, tresVeces, acumlTi, tiempoCiclo = 0, multiprog = 0, quantum = 0;
 
-bool particionRequerida = false;
+bool particionRequerida = false, fin = false;
 
 int controlDeEntradas(char *myString, int min, int max) {
     int valor;
@@ -88,9 +88,9 @@ void cargaManual(void){
 
         p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
         p->idProc = i;
-        p->ta = controlDeEntradas("tiempo de arribo", 0, 500);
-        p->ti = controlDeEntradas("tiempo de irrupción", 1, 500);
-        acuml += p->ti;
+        p->ta = controlDeEntradas("tiempo de arribo", 0, 20);
+        p->ti = controlDeEntradas("tiempo de irrupción", 1, 20);
+        acumlTi += p->ti;
         p->tr = p->ti;
         p->tam = controlDeEntradas("tamaño del proceso", 1, 250);
         
@@ -117,7 +117,7 @@ void cargaAutomatica(void){
         p->idProc = i;
         p->ta = generacionAleatoria(0, 20);
         p->ti = generacionAleatoria(1, 20);
-        acuml += p->ti;
+        acumlTi += p->ti;
         p->tr = p->ti;
         p->tam = generacionAleatoria(1, 250);
         
@@ -190,8 +190,7 @@ void iniciarArreglo(void){
     memoria[3].tamPart = 250;
 }
 
-void recorridoArreglo(void){
-    // system("clear");
+void mostrarMemoria(void){
     printf("\nParticiones de memoria: \n");
     for (int i = 0; i < 4; i++) {
     printf("Particion %d - ID: %d, DirCom: %d, TamPart: %d, IDProcAsig: %d, FragInt: %d, Libre: %s\n",
@@ -215,53 +214,46 @@ void asignarEnMemoria(int index, Proceso *sl, bool particionRequerida) {
 }
 
 void best_fit(void) {
-    // Algoritmo Best Fit
-    if (sl->tam <= 60 && memoria[1].libre) {
-        asignarEnMemoria(1, sl, particionRequerida);
-    } else if (sl->tam > 60 && sl->tam <= 120 && memoria[2].libre) {
-        asignarEnMemoria(2, sl, particionRequerida);
-    } else if (sl->tam > 120 && sl->tam <= 250 && memoria[3].libre) {
-        asignarEnMemoria(3, sl, particionRequerida);
-    } else {
-        // Esto controla si la partición que algún proceso requiere está ocupada
-        particionRequerida = true;
+    /* Arreglar esta condición para que no esté tan zarpada. */
+
+    if (memoria[1].idProcAsig != sl->idProc && memoria[2].idProcAsig != sl->idProc && memoria[3].idProcAsig != sl->idProc) {
+
+        if (sl->tam <= 60 && memoria[1].libre) {
+            asignarEnMemoria(1, sl, particionRequerida);
+        } else {
+            if (sl->tam > 60 && sl->tam <= 120 && memoria[2].libre) {
+                asignarEnMemoria(2, sl, particionRequerida);
+            } else {
+                if (sl->tam > 120 && sl->tam <= 250 && memoria[3].libre) {
+                    asignarEnMemoria(3, sl, particionRequerida);
+                } else {
+                    // Esto controla si la partición que algún proceso requiere está ocupada
+                    particionRequerida = true;
+                }
+            }
+        }
+    
     }
 }
 
-bool condiciones(void){
-    if (memoria[1].libre && memoria[2].libre && memoria[3].libre && priml == NULL && rl == NULL && res == NULL){
+bool condiciones(void) {
+    if (memoria[1].libre && memoria[2].libre && memoria[3].libre && fin && primp == NULL){
         return(true);
     } else {
         return(false);
     }
 }
 
-void iniciarPunterosAuxiliares(void){
-    priml = (Proceso *)malloc(sizeof (Proceso));
-    priml->idProc = 0;
-    priml->ta = 0;
-    priml->ti = 0;
-    priml->tam = 0;
-    priml->tr = 0;
-    priml->prox = NULL;
-
-    rl = (Proceso *)malloc(sizeof (Proceso));
-    rl->idProc = 0;
-    rl->ta = 0;
-    rl->ti = 0;
-    rl->tam = 0;
-    rl->tr = 0;
-    rl->prox = NULL;
-
-    res = (Proceso *)malloc(sizeof (Proceso));
-    res->idProc = 0;
-    res->ta = 0;
-    res->ti = 0;
-    res->tam = 0;
-    res->tr = 0;
-    res->prox = NULL;
+void liberarMemoria(void) {
+    for (int i = 1; i <= 3; i++) {
+        memoria[i].libre = true;
+        memoria[i].idProcAsig = 0;
+        memoria[i].fragInt = 0;
+    }
+    particionRequerida = false;
 }
 
+/*
 void muestrasParciales(Proceso *r){
     printf("\nInstante número: %d \n", tiempoCiclo);
     printf("Proceso en ejecución: %d \n", r->idProc);
@@ -280,11 +272,152 @@ void muestrasParciales(Proceso *r){
         }
     }
 }
+*/
+
+void muestrasParciales(Proceso *r){
+    printf("\nInstante número: %d \n", tiempoCiclo);
+    if (r->tr > 0) {
+        printf("Proceso en ejecución: %d \n", r->idProc);
+    } else {
+        printf("Proceso en ejecución: no hay perrito \n");
+    }
+    
+    mostrarMemoria();
+}
+
+void newToReady(void){
+    if (priml == NULL){
+        //printf("priml == NULL\n");
+        priml = primp;
+        if (primp->prox != NULL){ //Cambio para hacer que si viene un solo proceso, no avance
+            primp = primp->prox;
+        } else {
+            primp = NULL;
+        };
+        priml->prox = NULL;
+        rl = priml;
+        sl = priml; /* Esto queda así para no asignar varias veces sl para hacer la asignación en memoria. */
+    } else {
+        //printf("priml != NULL\n");
+        rl->prox = primp;
+        rl = primp;
+        if (primp->prox != NULL){
+            primp = primp->prox;
+        } else {
+            primp = NULL;
+        }
+        rl->prox = NULL; /*Esto queda alpedo sólo en la último proceso de la cola*/
+    }
+}
+
+void verificarFinProceso(void) {
+    if (quantum == 2 && priml->prox != NULL) {
+        liberarMemoria();
+        res = priml;
+        priml = priml->prox;
+        
+        while (rl->prox != NULL){
+            rl = rl->prox;
+        }
+        
+        res->prox = NULL;
+        //quantum = 0;
+        
+        /* Verificamos si nos queda tiempo de irrupción. */
+        if (res->tr > 0){
+            rl->prox = res;
+        } else {
+            if (rl->tr == 0){
+                multiprog--;
+            }
+        }
+        
+        while (rl->prox != NULL){
+            rl = rl->prox;
+        }
+    } else {
+        if (quantum == 2 && priml->tr > 0 && priml->prox == NULL) {
+            //quantum = 0;
+            liberarMemoria();
+        } else {
+            // Aquí terminó un proceso sin que termine el quantum, es decir, cuando es 1
+            if (quantum < 2 && priml->tr == 0 && priml->prox != NULL){
+                liberarMemoria();
+                res = priml;
+                priml = priml->prox;
+                res->prox = NULL;
+                quantum = 0;
+                multiprog--;
+
+                while (rl->prox != NULL){
+                    rl = rl->prox;
+                }
+
+            } else {
+                if (priml->tr == 0 && priml->prox == NULL){
+                    // Aquí termina un proceso y es el ÚLTIMO de todos
+                    liberarMemoria();
+                    fin = true;
+                    //quantum = 0;
+                    //priml = NULL; // Hace que "deje de apuntar" a la dirección que originalmente apuntaba
+                    //rl = NULL;
+                    //res = NULL;
+                    
+                }
+            }
+        }
+    }
+}
+
+void yamilTesting(void){
+    while (1) {        
+        while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
+
+            newToReady();
+
+            multiprog++;
+        }
+                
+        tresVeces = 0;
+        sl = priml;
+        while (sl != NULL && tresVeces < 3) {
+            best_fit();
+            tresVeces++;
+            if (sl->prox != NULL && !particionRequerida) {
+                sl = sl->prox;
+            }
+        }
+        
+        if (priml != NULL) {
+            muestrasParciales(priml);
+            priml->tr--;
+        } else {
+            printf("Instante %d: \n", tiempoCiclo);
+            printf("No hay procesos en la cola de listos. No hay procesos en ejecución. No hay procesos en memoria.");
+        }
+
+        quantum++;
+        tiempoCiclo++;
+        
+
+        if (priml != NULL) {
+            verificarFinProceso();
+        }
+
+        if (quantum == 2) {
+            quantum = 0;
+        }
+
+        /* Esta parte verifica el fin del programa. */
+        if (condiciones()) {
+            muestrasParciales(priml);
+            break;
+        }
+    }
+}
 
 int main(void){
     printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
-
-    iniciarPunterosAuxiliares();
 
     menu();
 
@@ -292,80 +425,7 @@ int main(void){
 
     iniciarArreglo();
 
-    recorridoArreglo();
+    yamilTesting();
 
-    while (!condiciones() || tiempoCiclo == 0){
-        if (quantum == 2 && priml->prox != NULL){
-            res = priml;
-            priml = priml->prox;
-            res->prox = NULL;
-            quantum = 0;
-            
-            /* Verificamos si nos queda tiempo de irrupción. */
-            if (rl->tr > 0){
-                rl->prox = res;
-            } else {
-                if (rl->tr == 0){
-                    multiprog--;
-                }
-            }
-
-        } else {
-            // Aquí terminó un proceso sin que termine el quantum, es decir, cuando es 1
-            if (quantum < 2 && rl->tr == 0 && priml->prox != NULL){
-                res = priml;
-                priml = priml->prox;
-                res->prox = NULL;
-                multiprog--;
-            } else {
-                if (rl->tr == 0 && priml->prox == NULL && x == 0){
-                    // Aquí termina un proceso y es el ÚLTIMO de todos
-                    priml = NULL; // Hace que "deje de apuntar" a la dirección que originalmente apuntaba
-                    rl = NULL;
-                    res = NULL;
-                    
-                    free(priml); // Liberar memoria del proceso terminado
-                    free(rl);    // Liberar memoria de rl
-                    free(res);   // Liberar memoria de res
-                }
-            }
-        }
-        
-        x = 0;
-        while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
-            if (priml == NULL){
-                priml = primp;
-                primp = primp->prox;
-                priml->prox = NULL;
-                rl = priml;
-            } else {
-                rl->prox = primp;
-                rl = primp;
-                if (primp->prox != NULL){
-                    primp = primp->prox;
-                } else {
-                    primp = NULL;
-                }
-                rl->prox = NULL;
-            }
-
-            multiprog++;
-        }
-
-        sl = priml;
-        while (sl != NULL && !particionRequerida && tresVeces < 3) {
-            best_fit();
-            tresVeces++;
-            if (sl->prox != NULL && !particionRequerida) {
-                sl = sl->prox;
-            }
-        }
-
-        muestrasParciales(priml);
-        tiempoCiclo++;
-        quantum++;
-        priml->tr--;
-    }
-
-    return 0;
+    return(0);
 };
