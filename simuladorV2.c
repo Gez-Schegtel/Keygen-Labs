@@ -423,7 +423,13 @@ void verificarFinProceso(void) {
 }
 
 void yamilTesting(void){
-    while (1) {        
+
+    int saltoTiempo, resTiempo;
+    int tecla = 13;
+    saltoTiempo = 1;
+    resTiempo = tiempoCiclo;
+
+    while (tecla == 13) {
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
             newToReady();
@@ -442,7 +448,31 @@ void yamilTesting(void){
         }
         
         if (priml != NULL) {
-            muestrasParciales(priml);
+            if ((resTiempo + saltoTiempo) == tiempoCiclo) {
+                muestrasParciales(priml);
+                printf("\n");
+                printf("Precione:\n");
+                printf("-Enter para continuar\n");
+                printf("-Backspace para cambiar el salto de tiempo (Actual: %d)\n", saltoTiempo);
+                printf("-Escape para salir\n");
+                tecla = _getch();
+                if (tecla == 8) {
+                    saltoTiempo = controlDeEntradas("salto de tiempo", 1, 20);
+                    tecla = 13;
+                } else if (tecla == 27) {
+                    break;
+                };
+                while (tecla != 13 && tecla != 27 && tecla != 8){
+                    tecla = _getch();
+                    if (tecla == 8) {
+                        saltoTiempo = controlDeEntradas("salto de tiempo", 1, 20);
+                        tecla = 13;
+                    } else if (tecla == 27) {
+                        break;
+                    }
+                };                
+                resTiempo = tiempoCiclo;
+            }
             priml->tr--;
         } else {
             printf("Instante %d: \n", tiempoCiclo);
