@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <conio.h>
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
@@ -64,7 +65,7 @@ void insertarOrdenado(Proceso **cabeza, Proceso *nuevo){
     Proceso *actual = *cabeza;
     Proceso *anterior = NULL;
 
-    while (actual != NULL && actual->ta < nuevo->ta) {
+    while (actual != NULL && actual->ta <= nuevo->ta) {
         anterior = actual;
         actual = actual->prox;
     }
@@ -125,11 +126,56 @@ void cargaAutomatica(void){
     }
 }
 
+void cargaArchivo(void) {
+    FILE *archivo;
+    char nombreArchivo[] = "procesos.csv"; // Nombre del archivo CSV
+    Proceso procesos[10]; // Array para almacenar los procesos del archivo
+    int contador = 0;
+
+    // Abrir el archivo en modo lectura
+    archivo = fopen(nombreArchivo, "r");
+
+    if (archivo == NULL) {
+        printf("No se pudo abrir el archivo.\n");
+        return;
+    }
+
+    // Leer y descartar la primera línea (encabezados)
+    char buffer[100];
+    fgets(buffer, sizeof(buffer), archivo);
+
+    // Leer el archivo línea por línea y asignar los valores a las variables
+    while (contador < 10) {
+
+        p = (Proceso *)malloc(sizeof(Proceso));
+        if (p == NULL) {
+            printf("Error: No se pudo asignar memoria para el nuevo nodo.\n");
+            break;
+        }
+
+        // Leer los valores y asignarlos al nodo
+        if (fscanf(archivo, "%d,%d,%d,%d\n", &p->idProc, &p->ta, &p->ti, &p->tam) != 4) {
+            free(p); // Liberar la memoria asignada
+            break;
+        }
+
+        acumlTi += p->ti;
+        p->tr = p->ti;
+
+        insertarOrdenado(&primp, p);
+
+        contador++;
+    }
+
+    // Cerrar el archivo
+    fclose(archivo);
+}
+
 void menu(void) {
     char respuesta[7]; /* Siempre tiene que tener un espacio "de más" que la palabra más larga. */
 
     do {
-        printf("Para cargar manualmente los procesos, ingrese 'manual'. \nSi prefiere generar los procesos de manera automática, ingrese 'auto'. \nSi desea detener la operación, ingrese 'quit'. \n:");
+        printf("Para cargar manualmente los procesos, ingrese 'manual'. \nPara generar los procesos de manera automática, ingrese 'auto'. \nPara leer los procesos desde el archivo 'procesos.csv', ingrese 'leer'. \nSi desea detener la operación, ingrese 'quit'. \n:");
         scanf("%s", respuesta);
 
         /* Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas. '\0' es el caracter NULL que indica el fin de un string. */
@@ -145,6 +191,10 @@ void menu(void) {
         } else if (strcmp(respuesta, "auto") == 0) {
             printf("Cargando automáticamente...\n");
             cargaAutomatica();
+            break;
+        } else if (strcmp(respuesta, "leer") == 0) {
+            printf("Cargando desde archivo...\n");
+            cargaArchivo();
             break;
         } else if (strcmp(respuesta, "quit") == 0) {
             printf("Deteniendo la ejecución...\n");
