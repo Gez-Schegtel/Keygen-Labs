@@ -102,23 +102,55 @@ void recorridoListaInicial(Proceso *r){
     }
 }
 
-void generacionProcesosManual(void){
+// void generacionProcesosManual(void){
+//     /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
+    
+//     numProcesoUsuario();
+
+//     for (int i = 1; i <= cantProc; i++) {
+//         datosProcesoUsuario(i);
+
+//         p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+//         p->idProc = i;
+//         p->ta = userTa;
+//         p->ti = userTi;
+//         p->tam = userTam;
+//         p->tr = userTi;
+        
+//         insertarOrdenado(&primp, p);
+//     }
+// }
+
+void cargaTesting(void){
     /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
     
-    numProcesoUsuario();
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 1;
+    p->ta = 6;
+    p->ti = 18;
+    p->tam = 153;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
 
-    for (int i = 1; i <= cantProc; i++) {
-        datosProcesoUsuario(i);
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 2;
+    p->ta = 11;
+    p->ti = 17;
+    p->tam = 73;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
 
-        p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
-        p->idProc = i;
-        p->ta = userTa;
-        p->ti = userTi;
-        p->tam = userTam;
-        p->tr = userTi;
-        
-        insertarOrdenado(&primp, p);
-    }
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 3;
+    p->ta = 16;
+    p->ti = 1;
+    p->tam = 233;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
 }
 
 void iniciarArreglo(void){
@@ -167,16 +199,25 @@ void asignarEnMemoria(int index, Proceso *sl, bool particionRequerida) {
 }
 
 void best_fit(void) {
-    // Algoritmo Best Fit
-    if (sl->tam <= 60 && memoria[1].libre) {
-        asignarEnMemoria(1, sl, particionRequerida);
-    } else if (sl->tam > 60 && sl->tam <= 120 && memoria[2].libre) {
-        asignarEnMemoria(2, sl, particionRequerida);
-    } else if (sl->tam > 120 && sl->tam <= 250 && memoria[3].libre) {
-        asignarEnMemoria(3, sl, particionRequerida);
-    } else {
-        // Esto controla si la partición que algún proceso requiere está ocupada
-        particionRequerida = true;
+    /* Arreglar esta condición para que no esté tan zarpada. */
+
+    if (memoria[1].idProcAsig != sl->idProc && memoria[2].idProcAsig != sl->idProc && memoria[3].idProcAsig != sl->idProc) {
+
+        if (sl->tam <= 60 && memoria[1].libre) {
+            asignarEnMemoria(1, sl, particionRequerida);
+        } else {
+            if (sl->tam > 60 && sl->tam <= 120 && memoria[2].libre) {
+                asignarEnMemoria(2, sl, particionRequerida);
+            } else {
+                if (sl->tam > 120 && sl->tam <= 250 && memoria[3].libre) {
+                    asignarEnMemoria(3, sl, particionRequerida);
+                } else {
+                    // Esto controla si la partición que algún proceso requiere está ocupada
+                    particionRequerida = true;
+                }
+            }
+        }
+    
     }
 }
 
@@ -188,13 +229,22 @@ bool condiciones(void) {
     }
 }
 
+// void liberarMemoria(void) {
+//     for (int i = 1; i <= 3; i++) {
+//         if (priml->idProc == memoria[i].idProcAsig) { //liberando memoria 
+//             memoria[i].libre = true;
+//             memoria[i].idProcAsig = 0;
+//             memoria[i].fragInt = 0;
+//         }
+//     }
+//     particionRequerida = false;
+// }
+
 void liberarMemoria(void) {
     for (int i = 1; i <= 3; i++) {
-        if (priml->idProc == memoria[i].idProcAsig) { //liberando memoria 
-            memoria[i].libre = true;
-            memoria[i].idProcAsig = 0;
-            memoria[i].fragInt = 0;
-        }
+        memoria[i].libre = true;
+        memoria[i].idProcAsig = 0;
+        memoria[i].fragInt = 0;
     }
     particionRequerida = false;
 }
@@ -224,7 +274,7 @@ void muestrasParciales(Proceso *r){
     // }
 }
 
-void randomAccessMemory(void){
+void newToReady(void){
     if (priml == NULL){
         //printf("priml == NULL\n");
         priml = primp;
@@ -258,10 +308,67 @@ void randomAccessMemory(void){
     // }
 }
 
+void verificarFinProceso(void) {
+    if (quantum == 2 && priml->prox != NULL) {
+        liberarMemoria();
+        res = priml;
+        priml = priml->prox;
+        
+        if (rl->prox != NULL){
+            rl = rl->prox;
+        }
+        
+        res->prox = NULL;
+        //quantum = 0;
+        
+        /* Verificamos si nos queda tiempo de irrupción. */
+        if (res->tr > 0){
+            rl->prox = res;
+        } else {
+            if (rl->tr == 0){
+                multiprog--;
+            }
+        }
+    } else {
+        if (quantum == 2 && priml->tr > 0 && priml->prox == NULL) {
+            //quantum = 0;
+            liberarMemoria();
+        } else {
+            // Aquí terminó un proceso sin que termine el quantum, es decir, cuando es 1
+            if (quantum < 2 && priml->tr == 0 && priml->prox != NULL){
+                liberarMemoria();
+                res = priml;
+                priml = priml->prox;
+                res->prox = NULL;
+                quantum = 0;
+                multiprog--;
+
+                if (rl->prox != NULL){
+                    rl = rl->prox;
+                }
+
+            } else {
+                if (priml->tr == 0 && priml->prox == NULL){
+                    // Aquí termina un proceso y es el ÚLTIMO de todos
+                    liberarMemoria();
+                    fin = true;
+                    //quantum = 0;
+                    //priml = NULL; // Hace que "deje de apuntar" a la dirección que originalmente apuntaba
+                    //rl = NULL;
+                    //res = NULL;
+                    
+                }
+            }
+        }
+    }
+}
+
 int main(void){
     printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
 
-    generacionProcesosManual();
+    //generacionProcesosManual();
+
+    cargaTesting();
 
     recorridoListaInicial(primp);
 
@@ -270,13 +377,13 @@ int main(void){
     while (1) {        
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
-            randomAccessMemory();
+            newToReady();
 
             multiprog++;
         }
                 
         tresVeces = 0;
-        while (sl != NULL && !particionRequerida && tresVeces < 3) {
+        while (sl != NULL && tresVeces < 3) {
             best_fit();
             tresVeces++;
             if (sl->prox != NULL && !particionRequerida) {
@@ -284,49 +391,27 @@ int main(void){
             }
         }
         
-        muestrasParciales(priml);
-
-        tiempoCiclo++;
-        quantum++;
-        priml->tr--;
-    
-        if (quantum == 2 && priml->prox != NULL) {
-            liberarMemoria();
-            res = priml;
-            priml = priml->prox;
-            res->prox = NULL;
-            quantum = 0;
-            
-            /* Verificamos si nos queda tiempo de irrupción. */
-            if (res->tr > 0){
-                rl->prox = res;
-            } else {
-                if (rl->tr == 0){
-                    multiprog--;
-                }
-            }
-
+        if (priml != NULL) {
+            muestrasParciales(priml);
+            priml->tr--;
         } else {
-            // Aquí terminó un proceso sin que termine el quantum, es decir, cuando es 1
-            if (quantum < 2 && priml->tr == 0 && priml->prox != NULL){
-                liberarMemoria();
-                res = priml;
-                priml = priml->prox;
-                res->prox = NULL;
-                multiprog--;
-            } else {
-                if (priml->tr == 0 && priml->prox == NULL){
-                    // Aquí termina un proceso y es el ÚLTIMO de todos
-                    liberarMemoria();
-                    fin = true;
-                    //priml = NULL; // Hace que "deje de apuntar" a la dirección que originalmente apuntaba
-                    //rl = NULL;
-                    //res = NULL;
-                    
-                }
-            }
+            printf("Instante %d: \n", tiempoCiclo);
+            printf("No hay procesos en la cola de listos. No hay procesos en ejecución. No hay procesos en memoria.");
         }
 
+        quantum++;
+        tiempoCiclo++;
+        
+
+        if (priml != NULL) {
+            verificarFinProceso();
+        }
+
+        if (quantum == 2) {
+            quantum = 0;
+        }
+
+        /* Esta parte verifica el fin del programa. */
         if (condiciones()) {
             muestrasParciales(priml);
             break;
