@@ -78,6 +78,65 @@ void insertarOrdenado(Proceso **cabeza, Proceso *nuevo){
     }
 }
 
+void cargaTesting(void){
+    /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
+    
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 1;
+    p->ta = 0;
+    p->ti = 4;
+    p->tam = 100;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 2;
+    p->ta = 0;
+    p->ti = 5;
+    p->tam = 50;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 3;
+    p->ta = 1;
+    p->ti = 2;
+    p->tam = 200;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 4;
+    p->ta = 2;
+    p->ti = 7;
+    p->tam = 10;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 5;
+    p->ta = 4;
+    p->ti = 10;
+    p->tam = 100;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 6;
+    p->ta = 6;
+    p->ti = 4;
+    p->tam = 100;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+}
+
 void cargaManual(void){
     /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
     
@@ -139,7 +198,8 @@ void menu(void) {
 
         /* Si los dos strings son iguales, la función strcmp devuelve 0 */
         if (strcmp(respuesta, "manual") == 0) {
-            cargaManual();
+            //cargaManual();
+            cargaTesting();
             break;
         } else if (strcmp(respuesta, "auto") == 0) {
             cargaAutomatica();
@@ -327,7 +387,7 @@ void verificarFinProceso(void) {
         if (res->tr > 0){
             rl->prox = res;
         } else {
-            if (rl->tr == 0){
+            if (res->tr == 0){
                 multiprog--;
             }
         }
