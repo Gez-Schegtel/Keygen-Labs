@@ -78,6 +78,65 @@ void insertarOrdenado(Proceso **cabeza, Proceso *nuevo){
     }
 }
 
+void cargaTesting(void){
+    /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
+    
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 1;
+    p->ta = 0;
+    p->ti = 4;
+    p->tam = 100;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 2;
+    p->ta = 0;
+    p->ti = 5;
+    p->tam = 50;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 3;
+    p->ta = 1;
+    p->ti = 2;
+    p->tam = 200;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 4;
+    p->ta = 2;
+    p->ti = 7;
+    p->tam = 10;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 5;
+    p->ta = 4;
+    p->ti = 10;
+    p->tam = 100;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+    p->idProc = 6;
+    p->ta = 6;
+    p->ti = 4;
+    p->tam = 100;
+    p->tr = p->ti;
+    
+    insertarOrdenado(&primp, p);
+
+}
+
 void cargaManual(void){
     /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
     
@@ -125,86 +184,35 @@ void cargaAutomatica(void){
     }
 }
 
-void cargaArchivo(void) {
-    FILE *archivo;
-    char nombreArchivo[] = "procesos.csv"; // Nombre del archivo CSV
-    Proceso procesos[10]; // Array para almacenar los procesos del archivo
-    int contador = 0;
-
-    // Abrir el archivo en modo lectura
-    archivo = fopen(nombreArchivo, "r");
-
-    if (archivo == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-
-    // Leer y descartar la primera línea (encabezados)
-    char buffer[100];
-    fgets(buffer, sizeof(buffer), archivo);
-
-    // Leer el archivo línea por línea y asignar los valores a las variables
-    while (contador < 10) {
-
-        p = (Proceso *)malloc(sizeof(Proceso));
-        if (p == NULL) {
-            printf("Error: No se pudo asignar memoria para el nuevo nodo.\n");
-            break;
-        }
-
-        // Leer los valores y asignarlos al nodo
-        if (fscanf(archivo, "%d,%d,%d,%d\n", &p->idProc, &p->ta, &p->ti, &p->tam) != 4) {
-            free(p); // Liberar la memoria asignada
-            break;
-        }
-
-        acumlTi += p->ti;
-        p->tr = p->ti;
-
-        insertarOrdenado(&primp, p);
-
-        contador++;
-    }
-
-    // Cerrar el archivo
-    fclose(archivo);
-}
-
 void menu(void) {
-    char respuesta[7]; /* Siempre tiene que tener un espacio "de más" que la palabra más larga. */
+    char respuesta[7];
 
     do {
-        printf("Para cargar manualmente los procesos, ingrese 'manual'. \nPara generar los procesos de manera automática, ingrese 'auto'. \nPara leer los procesos desde el archivo 'procesos.csv', ingrese 'leer'. \nSi desea detener la operación, ingrese 'quit'. \n:");
+        printf("Para cargar manualmente los procesos, ingrese 'manual'. \nSi prefiere generar los procesos de manera automática, ingrese 'auto'. \nSi desea detener la operación, ingrese 'quit'. \n:");
         scanf("%s", respuesta);
 
-        /* Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas. '\0' es el caracter NULL que indica el fin de un string. */
-        for (int i = 0; respuesta[i] != '\0'; i++) {
+        /* Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas */
+        for (int i = 0; i < strlen(respuesta); i++) {
             respuesta[i] = tolower(respuesta[i]);
         }
 
-        // Comparar cadenas sin usar strcmp
+        /* Si los dos strings son iguales, la función strcmp devuelve 0 */
         if (strcmp(respuesta, "manual") == 0) {
-            printf("Cargando manualmente...\n");
-            cargaManual();
+            //cargaManual();
+            cargaTesting();
             break;
         } else if (strcmp(respuesta, "auto") == 0) {
-            printf("Cargando automáticamente...\n");
             cargaAutomatica();
-            break;
-        } else if (strcmp(respuesta, "leer") == 0) {
-            printf("Cargando desde archivo...\n");
-            cargaArchivo();
             break;
         } else if (strcmp(respuesta, "quit") == 0) {
             printf("Deteniendo la ejecución...\n");
             exit(0);
         } else {
             printf("Respuesta no válida.\nEjecutando el programa nuevamente... \n");
-            system("pause"); /* Arroja el mensaje de apretar una tecla para continuar. */
-            system("cls");
+            sleep(2);
+            system("clear");
         }
-
-    } while (1);
+    } while(1);
 }
 
 void recorridoListaInicial(Proceso *r){
@@ -379,7 +387,7 @@ void verificarFinProceso(void) {
         if (res->tr > 0){
             rl->prox = res;
         } else {
-            if (rl->tr == 0){
+            if (res->tr == 0){
                 multiprog--;
             }
         }
@@ -422,13 +430,7 @@ void verificarFinProceso(void) {
 }
 
 void yamilTesting(void){
-
-    int saltoTiempo, resTiempo;
-    int tecla = 13;
-    saltoTiempo = 0;
-    resTiempo = tiempoCiclo;
-
-    while (tecla == 13) {
+    while (1) {        
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
             newToReady();
@@ -447,36 +449,8 @@ void yamilTesting(void){
         }
         
         if (priml != NULL) {
-            if ((resTiempo + saltoTiempo) == tiempoCiclo) {
-                muestrasParciales(priml);
-                if (saltoTiempo == 0){
-                    saltoTiempo = 1;
-                }
-                printf("\n");
-                printf("Presione:\n");
-                printf("-Enter para continuar\n");
-                printf("-Backspace para cambiar el salto de tiempo (Actual: %d)\n", saltoTiempo);
-                printf("-Escape para salir\n");
-                tecla = getch();
-                if (tecla == 8) {
-                    saltoTiempo = controlDeEntradas("salto de tiempo", 1, 20);
-                    tecla = 13;
-                } else if (tecla == 27) {
-                    break;
-                };
-                while (tecla != 13 && tecla != 27 && tecla != 8){
-                    tecla = getch();
-                    if (tecla == 8) {
-                        saltoTiempo = controlDeEntradas("salto de tiempo", 1, 20);
-                        tecla = 13;
-                    } else if (tecla == 27) {
-                        break;
-                    }
-                };                
-                resTiempo = tiempoCiclo;
-            }
+            muestrasParciales(priml);
             priml->tr--;
-
         } else {
             printf("Instante %d: \n", tiempoCiclo);
             printf("No hay procesos en la cola de listos. No hay procesos en ejecución. No hay procesos en memoria.");
