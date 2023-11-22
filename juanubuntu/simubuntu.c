@@ -457,7 +457,7 @@ void yamilTesting(void){
                 printf("-Enter para continuar\n");
                 printf("-Backspace para cambiar el salto de tiempo (Actual: %d)\n", saltoTiempo);
                 printf("-Escape para salir\n");
-                tecla = getchar();
+                tecla = getch();
                 if (tecla == 8) {
                     saltoTiempo = controlDeEntradas("salto de tiempo", 1, 20);
                     tecla = 13;
@@ -465,7 +465,7 @@ void yamilTesting(void){
                     break;
                 };
                 while (tecla != 13 && tecla != 27 && tecla != 8){
-                    tecla = getchar();
+                    tecla = getch();
                     if (tecla == 8) {
                         saltoTiempo = controlDeEntradas("salto de tiempo", 1, 20);
                         tecla = 13;
