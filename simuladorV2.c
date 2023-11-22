@@ -29,7 +29,7 @@ Proceso *primp, *p, *priml, *rl, *sl, *res;
 
 Particion memoria[4];
 
-int cantProc, userTa, userTi, userTam, tresVeces, acumlTi, tiempoCiclo = 0, multiprog = 0, quantum = 0;
+int arch, cantProc, userTa, userTi, userTam, tresVeces, acumlTi, tiempoCiclo = 0, multiprog = 0, quantum = 0;
 
 bool particionRequerida = false, fin = false;
 
@@ -126,7 +126,7 @@ void cargaAutomatica(void){
     }
 }
 
-void cargaArchivo(void) {
+int cargaArchivo(void) {
     FILE *archivo;
     char nombreArchivo[] = "procesos.csv"; // Nombre del archivo CSV
     Proceso procesos[10]; // Array para almacenar los procesos del archivo
@@ -137,7 +137,7 @@ void cargaArchivo(void) {
 
     if (archivo == NULL) {
         printf("No se pudo abrir el archivo.\n");
-        return;
+        return 0;
     }
 
     // Leer y descartar la primera línea (encabezados)
@@ -169,6 +169,7 @@ void cargaArchivo(void) {
 
     // Cerrar el archivo
     fclose(archivo);
+    return 1;
 }
 
 void menu(void) {
@@ -194,7 +195,7 @@ void menu(void) {
             break;
         } else if (strcmp(respuesta, "leer") == 0) {
             printf("Cargando desde archivo...\n");
-            cargaArchivo();
+            arch = cargaArchivo();
             break;
         } else if (strcmp(respuesta, "quit") == 0) {
             printf("Deteniendo la ejecución...\n");
@@ -507,6 +508,10 @@ int main(void){
     printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
 
     menu();
+
+    if (!arch){
+        return(0);
+    };
 
     recorridoListaInicial(primp);
 
