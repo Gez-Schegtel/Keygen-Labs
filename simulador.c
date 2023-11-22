@@ -64,7 +64,7 @@ void insertarOrdenado(Proceso **cabeza, Proceso *nuevo){
     Proceso *actual = *cabeza;
     Proceso *anterior = NULL;
 
-    while (actual != NULL && actual->ta < nuevo->ta) {
+    while (actual != NULL && actual->ta <= nuevo->ta) {
         anterior = actual;
         actual = actual->prox;
     }
