@@ -3,7 +3,6 @@
 #include <stdbool.h> // To define boolean values such 'true' and 'false'
 #include <string.h> // For `strcmp()`
 #include <ctype.h> // For `tolower()`
-#include <time.h> // Don't know why
 
 /* Definimos macros para mejorar la compatibilidad entre sistemas Linux y Windows. */
 #ifdef _WIN32
