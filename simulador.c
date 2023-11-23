@@ -1,10 +1,33 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <string.h>
-#include <ctype.h>
-#include <time.h>
+#include <stdio.h> // For `printf()`
+#include <stdlib.h> // For `exit()`
+#include <stdbool.h> // To define boolean values such 'true' and 'false'
+#include <string.h> // For `strcmp()`
+#include <ctype.h> // For `tolower()`
+#include <time.h> // Don't know why
+
+/* Definimos macros para mejorar la compatibilidad entre sistemas Linux y Windows. */
+#ifdef _WIN32
+    // Windows
+    #define PAUSE() system("pause")
+
+    #define CLEAR_SCREEN() system("cls")
+
+    #include <windows.h>
+    #define SLEEP(x) Sleep(x * 1000)
+
+#else
+    // GNU/Linux
+    #define CLEAR_SCREEN() system("clear")
+
+    #include <unistd.h>
+    #define SLEEP(x) sleep(x)
+
+    #define PAUSE() \
+        do { \
+            printf("\nPresione una tecla para continuar... \n"); \
+            while (getchar() != '\n'); \
+        } while (0)
+#endif
 
 typedef struct proceso {
     int idProc;
@@ -24,33 +47,44 @@ typedef struct particion {
     bool libre;
 } Particion;
 
+typedef struct reporte {
+    int idProc;
+    int tiempoRetorno;
+    int tiempoEspera;
+    struct reporte *prox;
+} Reporte;
+
 Proceso *primp, *p, *priml, *rl, *sl, *res;
 
 Particion memoria[4];
 
-int cantProc, userTa, userTi, userTam, tresVeces, acumlTi, tiempoCiclo = 0, multiprog = 0, quantum = 0;
+Reporte *primrep, *rep, *resrep;
+
+int cantProc, userTa, userTi, userTam, tresVeces, acumlTi;
+int tiempoCiclo = 0, multiprog = 0, quantum = 0;
 
 bool particionRequerida = false, fin = false;
 
 int controlDeEntradas(char *myString, int min, int max) {
+    /* Esta función sirve para controlar que el usuario ingrese los valores esperados. */
     int valor;
     bool bandit;
 
     do {
         /* Pide al usuario que ingrese un valor entero. */
-        printf("\nIngrese el %s.\n", myString);
-        printf("Se aceptan valores comprendidos entre %d y %d.\n: ", min, max);
+        printf("Ingrese el %s.\n", myString);
+        printf("Se aceptan valores comprendidos entre %d y %d.\n>> ", min, max);
 
         /* Intenta leer un entero desde la entrada estándar. */
         if (scanf("%d", &valor) != 1) {
             /* La entrada no fue un entero válido. */
-            printf("\nError: Has ingresado un valor que no es númerico.\n");
+            printf("\nError: Has ingresado un valor que no es númerico.\n\n");
             bandit = false;
             /* ¡Importante! Limpiar el buffer de entrada para evitar bucles infinitos. */
             while (getchar() != '\n');
         
         } else if (!(valor >= min && valor <= max)) {
-            printf("\nError: has ingresado un valor numérico fuera del rango permitido.\n");
+            printf("\nError: has ingresado un valor numérico fuera del rango permitido.\n\n");
             bandit = false;
         } else {
             bandit = true;
@@ -61,6 +95,7 @@ int controlDeEntradas(char *myString, int min, int max) {
 }
 
 void insertarOrdenado(Proceso **cabeza, Proceso *nuevo){
+    /* Inserción ordenada de nodos en una lista. */
     Proceso *actual = *cabeza;
     Proceso *anterior = NULL;
 
@@ -78,134 +113,140 @@ void insertarOrdenado(Proceso **cabeza, Proceso *nuevo){
     }
 }
 
-void cargaTesting(void){
-    /*Lo siguiente es equivalente a la definición de "puntero a Proceso".*/
-    
-    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
-    p->idProc = 1;
-    p->ta = 0;
-    p->ti = 4;
-    p->tam = 100;
-    p->tr = p->ti;
-    
-    insertarOrdenado(&primp, p);
-
-    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
-    p->idProc = 2;
-    p->ta = 0;
-    p->ti = 5;
-    p->tam = 50;
-    p->tr = p->ti;
-    
-    insertarOrdenado(&primp, p);
-
-    p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
-    p->idProc = 3;
-    p->ta = 1;
-    p->ti = 2;
-    p->tam = 200;
-    p->tr = p->ti;
-    
-    insertarOrdenado(&primp, p);
-
-    p = (Proceso *)malloc(sizeof(Proceso)); 
-    p->idProc = 4;
-    p->ta = 2;
-    p->ti = 7;
-    p->tam = 10;
-    p->tr = p->ti;
-    
-    insertarOrdenado(&primp, p);
-
-    p = (Proceso *)malloc(sizeof(Proceso)); 
-    p->idProc = 5;
-    p->ta = 4;
-    p->ti = 10;
-    p->tam = 100;
-    p->tr = p->ti;
-    
-    insertarOrdenado(&primp, p);
-
-    p = (Proceso *)malloc(sizeof(Proceso)); 
-    p->idProc = 6;
-    p->ta = 6;
-    p->ti = 4;
-    p->tam = 100;
-    p->tr = p->ti;
-    
-    insertarOrdenado(&primp, p);
-
+void cargaEncolada(){
+    if (primrep == NULL){
+        primrep = rep;
+    } else {
+        resrep->prox = rep;
+    }
+    resrep = rep;
 }
 
-int generacionAleatoria(int min, int max){
-    srand(time(NULL)); /* Hace que la función rand() genere números distintos con el pasar del tiempo. */
-	int numeroAleatorio = min + rand() % max; /* Generamos un número aleatorio entre un mínimo y un máximo solicitado. */
-    sleep(1); /* Dejamos que pase un tiempo para que no se repitan los valores. */
-    return(numeroAleatorio);
-}
+void cargaManual(void){
+    /* En esta función cargamos los procesos en una lista ordenada, ya sea de forma manual (pidiéndoselo al usuario) o automática (generando números aleatorios). */
 
-void carga(bool manual){
-    
     cantProc = controlDeEntradas("número de procesos que desee planificar", 1, 10);
 
-    if (manual) { /* Carga manual. */
-        for (int i = 1; i <= cantProc; i++) {
-            printf("\nProceso nro. %d \n", i);
+    for (int i = 1; i <= cantProc; i++) {
+        printf("\nProceso número: %d \n", i);
 
-            p = (Proceso *)malloc(sizeof(Proceso)); /* De esta manera se crea un nuevo nodo. */
-            p->idProc = i;
-            p->ta = controlDeEntradas("tiempo de arribo", 0, 20);
-            p->ti = controlDeEntradas("tiempo de irrupción", 1, 20);
-            acumlTi += p->ti;
-            p->tr = p->ti;
-            p->tam = controlDeEntradas("tamaño del proceso", 1, 250);
-            
-            insertarOrdenado(&primp, p);
-        }
-    } else { /* Carga automática. */
-        for (int i = 1; i <= cantProc; i++) {
-            printf("\nGenerando proceso nro. %d \n", i);
+        p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+        p->idProc = i;
 
-            p = (Proceso *)malloc(sizeof(Proceso)); /* De esta manera se crea un nuevo nodo. */
-            p->idProc = i;
-            p->ta = generacionAleatoria(0, 20);
-            p->ti = generacionAleatoria(1, 20);
-            acumlTi += p->ti;
-            p->tr = p->ti;
-            p->tam = generacionAleatoria(1, 250);
-            
-            insertarOrdenado(&primp, p);
-        } 
+        p->ta = controlDeEntradas("tiempo de arribo", 0, 20);
+        p->ti = controlDeEntradas("tiempo de irrupción", 1, 20);
+        acumlTi += p->ti;
+        p->tr = p->ti;
+        p->tam = controlDeEntradas("tamaño del proceso", 1, 250);
+        
+        insertarOrdenado(&primp, p);
+
+        rep = (Reporte *)malloc(sizeof(Reporte));
+        rep->idProc = i;
+        rep->tiempoRetorno = 0;
+        rep->tiempoEspera = 0;
+        rep->prox = NULL;
+
+        cargaEncolada();
     }
+    CLEAR_SCREEN();
 }
 
-void menu(void) {
+bool cargaArchivo(void) {
+    FILE *archivo;
+    char nombreArchivo[] = "procesos.csv"; // Nombre del archivo CSV
+    Proceso procesos[10]; // Array para almacenar los procesos del archivo
+    int contador = 0;
+
+    // Abrir el archivo en modo lectura
+    archivo = fopen(nombreArchivo, "r");
+
+    if (archivo == NULL) { /* Si esta condición devuelve True quiere decir que no se pudo abrir el archivo. */
+        return(false);
+    }
+
+    // Leer y descartar la primera línea (encabezados)
+    char buffer[100];
+    fgets(buffer, sizeof(buffer), archivo);
+
+    // Leer el archivo línea por línea y asignar los valores a las variables
+    while (contador < 10) {
+
+        p = (Proceso *)malloc(sizeof(Proceso));
+        if (p == NULL) {
+            printf("Error: No se pudo asignar memoria para el nuevo nodo.\n");
+            break;
+        }
+
+        // Leer los valores y asignarlos al nodo
+        if (fscanf(archivo, "%d,%d,%d,%d\n", &p->idProc, &p->ta, &p->ti, &p->tam) != 4) {
+            free(p); // Liberar la memoria asignada
+            break;
+        }
+
+        acumlTi += p->ti;
+        p->tr = p->ti;
+
+        insertarOrdenado(&primp, p);
+
+        /* Hacemos la carga para los reportes. */
+        rep = (Reporte *)malloc(sizeof(Reporte));
+        rep->idProc = p->idProc;
+        rep->tiempoRetorno = 0;
+        rep->tiempoEspera = 0;
+        rep->prox = NULL;
+        cargaEncolada();
+
+        contador++;
+    }
+
+    // Cerrar el archivo
+    fclose(archivo);
+    return(true);
+}
+
+void menuOpcionesDeEntrada(void) {
     char respuesta[7];
 
     do {
-        printf("Para cargar manualmente los procesos, ingrese 'manual'. \nSi prefiere generar los procesos de manera automática, ingrese 'auto'. \nSi desea detener la operación, ingrese 'quit'. \n:");
+        printf("Para cargar manualmente los procesos, ingrese 'manual'.\n");
+        printf("Para leer los procesos desde el archivo 'procesos.csv', ingrese 'leer'.\n");
+        printf("Si desea detener la operación, ingrese 'quit'.\n>> ");
         scanf("%s", respuesta);
+        while (getchar() != '\n'); /* Limpiamos el buffer para evitar bucles infinitos. */
 
-        for (int i = 0; i < strlen(respuesta); i++) {  /* Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas. */
+        /* Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas. '\0' es el caracter NULL que indica el fin de un string. */
+        for (int i = 0; respuesta[i] != '\0'; i++) {
             respuesta[i] = tolower(respuesta[i]);
         }
 
-        if (strcmp(respuesta, "manual") == 0) { /* Si los dos strings son iguales, la función strcmp devuelve 0. */
-            //cargaTesting();
-            carga(true); /* True indica que se realizará una carga manual. */
+        if (strcmp(respuesta, "manual") == 0) {
+            printf("\nCarga manual seleccionada.\n");
+            SLEEP(2);
+            CLEAR_SCREEN();
+            cargaManual(); /* Nos lleva a la carga manual. */
+            // cargaTesting();
             break;
-        } else { 
-            if (strcmp(respuesta, "auto") == 0) {
-                carga(false); /* False indica una carga automática. */
-                break;
-            } else {
+        } else {
+            if (strcmp(respuesta, "leer") == 0) {
+                printf("\nCarga desde el archivo seleccionada.\n");
+                SLEEP(2);
+                CLEAR_SCREEN();
+                if (cargaArchivo()){
+                    break;
+                } else {
+                    printf("No se pudo abrir el archivo.\n");
+                    printf("Asegúrese de tener el archivo 'procesos.csv' en el directorio del programa.\n");
+                    PAUSE();
+                    CLEAR_SCREEN();
+                }
+            } else { 
                 if (strcmp(respuesta, "quit") == 0) {
-                    printf("Deteniendo la ejecución...\n");
                     exit(0);
                 } else {
-                    printf("Respuesta no válida.\nEjecutando el programa nuevamente... \n");
-                    sleep(2);
-                    system("clear");
+                    printf("\nRespuesta no válida.\n");
+                    PAUSE();
+                    CLEAR_SCREEN();
                 }
             }
         }
@@ -216,12 +257,14 @@ void recorridoListaInicial(Proceso *r){
     printf("Lista de procesos nuevos: \n");
 
     while (r != NULL){
-        printf("\nId del proceso: %d \n", r->idProc);
+        printf("Id del proceso: %d \n", r->idProc);
         printf("Tiempo de arribo: %d \n", r->ta);
         printf("Tiempo de irrupción: %d \n", r->ti);
         printf("Tamaño del proceso: %d \n", r->tam);
         
         r = r->prox;
+
+        printf("\n");
     }
 }
 
@@ -268,8 +311,19 @@ void asignarEnMemoria(int index, Proceso *sl, bool particionRequerida) {
     particionRequerida = false; /* Desmarcamos, ya que el proceso pudo ser asignado a memoria. */
 }
 
+bool noEstaAsignado(int idProc) {
+    for (int i = 1; i <= 3; ++i) {
+        if (memoria[i].idProcAsig == idProc) {
+            return false;  /* idProc encontrado, no cumple la condición. */
+        }
+    }
+    return true;  /* idProc no encontrado en ninguna estructura, cumple la condición. */
+}
+
 void best_fit(void) {
-    if (memoria[1].idProcAsig != sl->idProc && memoria[2].idProcAsig != sl->idProc && memoria[3].idProcAsig != sl->idProc) {
+
+    if (noEstaAsignado(sl->idProc)) {
+
         if (sl->tam <= 60 && memoria[1].libre) {
             asignarEnMemoria(1, sl, particionRequerida);
         } else {
@@ -279,11 +333,11 @@ void best_fit(void) {
                 if (sl->tam > 120 && sl->tam <= 250 && memoria[3].libre) {
                     asignarEnMemoria(3, sl, particionRequerida);
                 } else {
-                    particionRequerida = true; /* Esto controla si la partición que algún proceso requiere está ocupada. */
+                    // Esto controla si la partición que algún proceso requiere está ocupada.
+                    particionRequerida = true;
                 }
             }
         }
-    
     }
 }
 
@@ -309,7 +363,7 @@ void muestrasParciales(Proceso *r){
     if (r->tr > 0) {
         printf("Proceso en ejecución: %d \n", r->idProc);
     } else {
-        printf("No hay un proceso en ejecución en este instante. \n");
+        printf("Proceso en ejecución: ~ \n");
     }
     
     mostrarMemoria();
@@ -318,7 +372,7 @@ void muestrasParciales(Proceso *r){
 void newToReady(void){
     if (priml == NULL){
         priml = primp;
-        if (primp->prox != NULL){ /* Cambio para hacer que si viene un solo proceso, no avance. */
+        if (primp->prox != NULL){ //Cambio para hacer que si viene un solo proceso, no avance
             primp = primp->prox;
         } else {
             primp = NULL;
@@ -334,7 +388,16 @@ void newToReady(void){
         } else {
             primp = NULL;
         }
-        rl->prox = NULL;
+        rl->prox = NULL; /*Esto queda sin nada sólo en la último proceso de la cola*/
+    }
+}
+
+void calcularReportes(Reporte *r){
+
+    while (r != NULL){
+        r->tiempoRetorno = tiempoCiclo - res->ta;
+        r->tiempoEspera = r->tiempoRetorno - res->ti;
+        r = r->prox;
     }
 }
 
@@ -350,11 +413,14 @@ void verificarFinProceso(void) {
         
         res->prox = NULL;
         
-        if (res->tr > 0){ /* Verificamos si nos queda tiempo de irrupción. */
+        /* Verificamos si nos queda tiempo de irrupción. */
+        if (res->tr > 0){
             rl->prox = res;
         } else {
             if (res->tr == 0){
                 multiprog--;
+
+                calcularReportes(primrep);
             }
         }
         
@@ -365,7 +431,8 @@ void verificarFinProceso(void) {
         if (quantum == 2 && priml->tr > 0 && priml->prox == NULL) {
             liberarMemoria();
         } else {
-            if (quantum < 2 && priml->tr == 0 && priml->prox != NULL){ /* Aquí terminó un proceso sin que se termine el quantum, es decir, cuando es 1. */
+            /* Aquí terminó un proceso sin que termine el quantum, es decir, cuando es 1. */
+            if (quantum < 2 && priml->tr == 0 && priml->prox != NULL){
                 liberarMemoria();
                 res = priml;
                 priml = priml->prox;
@@ -377,18 +444,71 @@ void verificarFinProceso(void) {
                     rl = rl->prox;
                 }
 
+                calcularReportes(primrep);
+
             } else {
                 if (priml->tr == 0 && priml->prox == NULL){
-                    liberarMemoria(); /* Aquí termina un proceso y es el ÚLTIMO de todos. */
-                    fin = true;                    
+                    /* Aquí termina un proceso y es el último de todos. */
+                    liberarMemoria();
+                    fin = true;
+                    
+                    //calcularReportes(primrep);
                 }
             }
         }
     }
 }
 
-void yamilTesting(void){
-    while (1) {        
+char menuOpcionesDeFlujo(void){
+    char respuesta[2];
+    printf("\n");
+    while(1){
+        printf("Presione la tecla C para continuar. \n");
+        printf("Presione la tecla T para dar un salto de tiempo. \n");
+        printf("Presione la tecla F para para ir hasta el final. \n");
+        printf("Presione la tecla S para salir. \n");
+        printf(">> ");
+        scanf("%s", respuesta);
+        while (getchar() != '\n'); /* Limpiamos el buffer para evitar bucles infinitos. */
+
+        /* Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas. '\0' es el caracter NULL que indica el fin de un string. */
+        for (int i = 0; respuesta[i] != '\0'; i++) {
+            respuesta[i] = tolower(respuesta[i]);
+        }
+    
+        if (strcmp(respuesta, "c") == 0){
+            printf("\nContinuamos la ejecución al tiempo de ciclo siguiente.\n");
+            return('c');
+        } else {
+            if (strcmp(respuesta, "t") == 0){
+                printf("\n");
+                return('t');
+            } else {
+                if (strcmp(respuesta, "f") == 0){
+                    printf("Nos desplazamos hasta el último tiempo de ciclo.\n");
+                    return('f');
+                } else {
+                    if (strcmp(respuesta, "s") == 0){
+                        printf("\nDeteniendo la ejecución del programa.\n");
+                        SLEEP(1);
+                        exit(1);
+                    } else {
+                        printf("\nHas ingresado un valor incorrecto.\n");
+                    }
+                }
+            }
+        }
+        printf("\n");
+    }
+}
+
+void simulacion(void){
+    int saltoTiempo = 0;
+    int resTiempo = tiempoCiclo;
+    bool final = false;
+
+    while (1) { 
+
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
             newToReady();
@@ -406,17 +526,42 @@ void yamilTesting(void){
             }
         }
         
+        /* Pequeño mensaje para dar aviso que empezó la planificación de los procesos. */
+        if (tiempoCiclo == 0 && priml != NULL){
+            printf("Comenzando la simulación... \n");
+            SLEEP(2);
+        }
+
         if (priml != NULL) {
-            muestrasParciales(priml);
+            if ((resTiempo + saltoTiempo) == tiempoCiclo){
+                muestrasParciales(priml);
+
+                if (saltoTiempo == 0){
+                    saltoTiempo = 1;
+                }
+
+                /* Esta condición controla que si el usuario eligió ir hasta el final, no se muestre más el menú de opciones del flujo de ejecución. */
+                if (!final) {
+                    char control = menuOpcionesDeFlujo();
+                    if (control == 't') {
+                        saltoTiempo = controlDeEntradas("salto de tiempo", 1, 20);
+                    } else {
+                        if (control == 'f') {
+                            final = true;
+                        }
+                    }
+                }
+                resTiempo = tiempoCiclo;
+            }
             priml->tr--;
         } else {
-            printf("Instante %d: \n", tiempoCiclo);
-            printf("No hay procesos en la cola de listos. No hay procesos en ejecución. No hay procesos en memoria.");
+            printf("\nInstante número: %d\n", tiempoCiclo);
+            printf("Proceso en ejecución: ~\n");
+            mostrarMemoria();
         }
 
         quantum++;
         tiempoCiclo++;
-        
 
         if (priml != NULL) {
             verificarFinProceso();
@@ -426,23 +571,37 @@ void yamilTesting(void){
             quantum = 0;
         }
 
-        if (condiciones()) { /* Verificamos el fin del programa. */
+        /* Esta parte verifica el fin del programa. */
+        if (condiciones()) {
             muestrasParciales(priml);
             break;
         }
     }
 }
 
+void verReportes(Reporte *r){
+    printf("\nReportes estadísticos de los procesos:");
+    while (r != NULL) {
+        printf("\nProceso número: %d\n", resrep->idProc);
+        printf("Tiempo de retorno: %d \n", resrep->tiempoRetorno);
+        printf("Tiempo de espera:  %d \n", resrep->tiempoEspera); 
+        r = r->prox;   
+    }
+}
+
 int main(void){
+    CLEAR_SCREEN();
     printf("Este programa es un simulador de asignación de memoria y gestión de procesos. Se permiten hasta 10 procesos con un tamaño de 250 como máximo. \n\n");
 
-    menu();
+    menuOpcionesDeEntrada();
 
     recorridoListaInicial(primp);
 
     iniciarArreglo();
 
-    yamilTesting();
+    simulacion();
+
+    verReportes(primrep);
 
     return(0);
 };

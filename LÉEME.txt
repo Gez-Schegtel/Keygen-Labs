@@ -1,0 +1,46 @@
+
+Simulador de asignacion de memoria y planificacion de procesos
+
+---------------------------------------------------------------------------------
+
+INFORMACION:
+
+Este programa simula la asignacion de memoria por criterio best-fit
+y planificacion de procesos mediante el algoritmo Round-Robin, con un quantum "q" de salida igual a 2 (dos).
+---------------------------------------------------------------------------------
+
+
+FORMATO ARCHIVO:
+
+El archivo 'procesos.csv' debe cumplir la siguientes caracteristicas...
+
+-La primera línea es un encabezado.
+- Cada linea representa un proceso.
+- Maximo de lineas permitidas: 10
+- En cada linea se indica: [idProc,ta,ti,tam]
+donde:
+    ta = tiempo de arribo
+    ti = tiempo de irrupcion
+    tam = tamaño del proceso
+    idProc = id del proceso
+todos valores tipo entero.
+---------------------------------------------------------------------------------
+
+MODO DE EJECUCION:
+
+1) Ejecutar el archivo 'simulador.exe'
+2) El programa inicia un menú interactivo, desde la consola, para el usuario.
+3) Los procesos se pueden cargar de tres maneras: 
+-Manualmente.
+-Desde un archivo.
+4) Iniciar la simulacion.
+5) Presione ENTER para avanzar el reloj de ejecucion. 
+6) Mientras se simula, se puede modificar el salto de tiempo presionando BACKSPACE. 
+7) El simulador se ejecutará hasta que todos los procesos terminen con 'estado = terminado'
+---------------------------------------------------------------------------------
+
+ABORTAR:
+
+Si desea frenar la ejecucion de forma forzada:
+1. Presione la combinacion de teclas 'Ctrl + C', mientras no se ejecute la simulación. Si se está ejecutando, presionar ESC (escape).
+2. Cierre la ventana de su terminal.
