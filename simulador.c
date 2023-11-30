@@ -1,8 +1,9 @@
-#include <stdio.h> // For `printf()`
-#include <stdlib.h> // For `exit()`
-#include <stdbool.h> // To define boolean values such 'true' and 'false'
-#include <string.h> // For `strcmp()`
-#include <ctype.h> // For `tolower()`
+#include <stdio.h> // For ´printf´
+#include <stdlib.h> // For ´exit´
+#include <stdbool.h> // To´define boolean values such 'true' and 'false´
+#include <string.h> // For ´strcmp´
+#include <ctype.h> // For ´tolower´
+#include <time.h> // For ´time´
 
 /* Definimos macros para mejorar la compatibilidad entre sistemas Linux y Windows. */
 #ifdef _WIN32
@@ -23,10 +24,13 @@
 
     #define PAUSE() \
         do { \
-            printf("\nPresione una tecla para continuar... \n"); \
+            printf("\nPresione ENTER para continuar... \n"); \
             while (getchar() != '\n'); \
         } while (0)
 #endif
+
+#define MAX_INPUT_FLOW_LENGTH 1
+#define MAX_INPUT_MENU_LENGTH 6
 
 typedef struct proceso {
     int idProc;
@@ -121,33 +125,58 @@ void cargaEncolada(){
     resrep = rep;
 }
 
-void cargaManual(void){
+int generacionAleatoria(int min, int max){
+    srand(time(NULL)); /* Hace que la función rand() genere números distintos con el pasar del tiempo. */
+	int numeroAleatorio = min + rand() % max; /* Generamos un número aleatorio entre un mínimo y un máximo solicitado. */
+    sleep(1); /* Dejamos que pase un tiempo para que no se repitan los valores. */
+    return(numeroAleatorio);
+}
+
+void carga(bool manual){
     /* En esta función cargamos los procesos en una lista ordenada, ya sea de forma manual (pidiéndoselo al usuario) o automática (generando números aleatorios). */
 
     cantProc = controlDeEntradas("número de procesos que desee planificar", 1, 10);
 
-    for (int i = 1; i <= cantProc; i++) {
-        printf("\nProceso número: %d \n", i);
+    if (manual) {
+        for (int i = 1; i <= cantProc; i++) {
+            printf("\nProceso número: %d \n", i);
 
-        p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
-        p->idProc = i;
+            p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+            p->idProc = i;
 
-        p->ta = controlDeEntradas("tiempo de arribo", 0, 20);
-        p->ti = controlDeEntradas("tiempo de irrupción", 1, 20);
-        acumlTi += p->ti;
-        p->tr = p->ti;
-        p->tam = controlDeEntradas("tamaño del proceso", 1, 250);
-        
-        insertarOrdenado(&primp, p);
+            p->ta = controlDeEntradas("tiempo de arribo", 0, 20);
+            p->ti = controlDeEntradas("tiempo de irrupción", 1, 20);
+            acumlTi += p->ti;
+            p->tr = p->ti;
+            p->tam = controlDeEntradas("tamaño del proceso", 1, 250);
+            
+            insertarOrdenado(&primp, p);
 
-        rep = (Reporte *)malloc(sizeof(Reporte));
-        rep->idProc = i;
-        rep->tiempoRetorno = 0;
-        rep->tiempoEspera = 0;
-        rep->prox = NULL;
+            rep = (Reporte *)malloc(sizeof(Reporte));
+            rep->idProc = i;
+            rep->tiempoRetorno = 0;
+            rep->tiempoEspera = 0;
+            rep->prox = NULL;
 
-        cargaEncolada();
+            cargaEncolada();
+        }
+    } else {
+        for (int i = 1; i <= cantProc; i++) {
+            printf("\nGenerando proceso nro. %d \n", i);
+
+            p = (Proceso *)malloc(sizeof(Proceso)); /*De esta manera se crea un nuevo nodo.*/
+            p->idProc = i;
+            p->ta = generacionAleatoria(0, 20);
+            p->ti = generacionAleatoria(1, 20);
+            acumlTi += p->ti;
+            p->tr = p->ti;
+            p->tam = generacionAleatoria(1, 250);
+            
+            insertarOrdenado(&primp, p);
+        }
     }
+
+    while(getchar() != '\n'); /* Limpio el "buffer" porque si no, se generan errores al elegir la carga manual o automática. */
     CLEAR_SCREEN();
 }
 
@@ -205,51 +234,79 @@ bool cargaArchivo(void) {
 }
 
 void menuOpcionesDeEntrada(void) {
-    char respuesta[7];
+    char buffer[MAX_INPUT_MENU_LENGTH + 2];  // Adding 2 for the newline character and null terminator
 
-    do {
+    while(1) {
+
         printf("Para cargar manualmente los procesos, ingrese 'manual'.\n");
         printf("Para leer los procesos desde el archivo 'procesos.csv', ingrese 'leer'.\n");
-        printf("Si desea detener la operación, ingrese 'quit'.\n>> ");
-        scanf("%s", respuesta);
-        while (getchar() != '\n'); /* Limpiamos el buffer para evitar bucles infinitos. */
+        printf("Para generar de manera automática los procesos, ingrese 'auto'.\n");
+        printf("Si desea detener la operación, ingrese 'salir'.\n>> ");
 
-        /* Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas. '\0' es el caracter NULL que indica el fin de un string. */
-        for (int i = 0; respuesta[i] != '\0'; i++) {
-            respuesta[i] = tolower(respuesta[i]);
-        }
+        if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+            // Remove the newline character from the end of the string, if present
+            if (buffer[strlen(buffer) - 1] == '\n') {
+                buffer[strlen(buffer) - 1] = '\0';
 
-        if (strcmp(respuesta, "manual") == 0) {
-            printf("\nCarga manual seleccionada.\n");
-            SLEEP(2);
-            CLEAR_SCREEN();
-            cargaManual(); /* Nos lleva a la carga manual. */
-            // cargaTesting();
-            break;
-        } else {
-            if (strcmp(respuesta, "leer") == 0) {
-                printf("\nCarga desde el archivo seleccionada.\n");
-                SLEEP(2);
-                CLEAR_SCREEN();
-                if (cargaArchivo()){
+                // We make the input case insensitive
+                for (int i = 0; buffer[i] != '\0'; i++) {
+                    buffer[i] = tolower(buffer[i]);
+                }
+
+            } else {
+                // Handle the case where the input exceeds the maximum length
+                printf("\nLa entrada excedió los límites. La longitud máxima es de %d caracteres.\n\n", MAX_INPUT_MENU_LENGTH);
+                while(getchar() != '\n'); // We need to clean up the input to avoid re-execute the loop multiple times
+                continue; // We can ask for user input again
+            }
+
+            // Check if the input is one of the specified characters
+            char inputChar;
+            if (sscanf(buffer, " %c", &inputChar) == 1) {
+                if (strcmp(buffer, "manual") == 0) {
+                    printf("\nCarga manual seleccionada.\n\n");
+                    carga(true);
                     break;
                 } else {
-                    printf("No se pudo abrir el archivo.\n");
-                    printf("Asegúrese de tener el archivo 'procesos.csv' en el directorio del programa.\n");
-                    PAUSE();
-                    CLEAR_SCREEN();
+                    if (strcmp(buffer, "leer") == 0) {
+                        printf("\nCarga desde el archivo seleccionada.\n\n");
+                        SLEEP(1);
+                        CLEAR_SCREEN();
+                        if (cargaArchivo()){
+                            break;
+                        } else {
+                            printf("No se pudo abrir el archivo.\n");
+                            printf("Asegúrese de tener el archivo 'procesos.csv' en el directorio del programa.\n");
+                            PAUSE();
+                            CLEAR_SCREEN();
+                        }
+                    } else {
+                        if (strcmp(buffer, "auto") == 0) {
+                            printf("\nCarga automática seleccionada.\n\n");
+                            carga(false);
+                            break;
+                        } else {
+                            if (strcmp(buffer, "salir") == 0) {
+                                printf("\nDeteniendo la ejecución del programa...\n\n");
+                                exit(0);
+                            } else {
+                                printf("\nHas ingresado una opción incorrecta.\n\n");
+                                continue;
+                            }
+                        }
+                    }
                 }
-            } else { 
-                if (strcmp(respuesta, "quit") == 0) {
-                    exit(0);
-                } else {
-                    printf("\nRespuesta no válida.\n");
-                    PAUSE();
-                    CLEAR_SCREEN();
-                }
+
+            } else {
+                // Here we verify that the input wasn't something like TAB or another "special" keys
+                printf("\nHas ingresado un valor incorrecto.\n");
+                continue;
             }
+        } else {
+            printf("Error reading input.\n");
+            exit(1);
         }
-    } while(1);
+    } 
 }
 
 void recorridoListaInicial(Proceso *r){
@@ -368,7 +425,7 @@ void muestrasParciales(Proceso *r){
     mostrarMemoria();
 }
 
-void newToReady(void){
+void nuevoAListo(void){
     if (priml == NULL){
         priml = primp;
         if (primp->prox != NULL){ //Cambio para hacer que si viene un solo proceso, no avance
@@ -459,58 +516,77 @@ void verificarFinProceso(void) {
 }
 
 char menuOpcionesDeFlujo(void){
-    char respuesta[2];
-    printf("\n");
-    while(1){
-        printf("Presione la tecla C para continuar. \n");
+    char buffer[MAX_INPUT_FLOW_LENGTH + 2];  // Adding 2 for the newline character and null terminator
+
+    while(1) {
+
+        printf("\nPresione la tecla C para continuar. \n");
         printf("Presione la tecla T para dar un salto de tiempo. \n");
         printf("Presione la tecla F para para ir hasta el final. \n");
-        printf("Presione la tecla S para salir. \n");
-        printf(">> ");
-        scanf("%s", respuesta);
-        while (getchar() != '\n'); /* Limpiamos el buffer para evitar bucles infinitos. */
+        printf("Presione la tecla S para salir. \n>> ");
 
-        /* Convertir la respuesta a minúsculas para hacer la comparación no sensible a mayúsculas. '\0' es el caracter NULL que indica el fin de un string. */
-        for (int i = 0; respuesta[i] != '\0'; i++) {
-            respuesta[i] = tolower(respuesta[i]);
-        }
-    
-        if (strcmp(respuesta, "c") == 0){
-            printf("\nContinuamos la ejecución al tiempo de ciclo siguiente.\n");
-            return('c');
-        } else {
-            if (strcmp(respuesta, "t") == 0){
-                printf("\n");
-                return('t');
+        if (fgets(buffer, sizeof(buffer), stdin) != NULL) {
+            // Remove the newline character from the end of the string, if present
+            if (buffer[strlen(buffer) - 1] == '\n') {
+                buffer[strlen(buffer) - 1] = '\0';
+
+                // We make the input case insensitive
+                for (int i = 0; buffer[i] != '\0'; i++) {
+                    buffer[i] = tolower(buffer[i]);
+                }
+
             } else {
-                if (strcmp(respuesta, "f") == 0){
-                    printf("Nos desplazamos hasta el último tiempo de ciclo.\n");
-                    return('f');
+                // Handle the case where the input exceeds the maximum length
+                printf("\nLa entrada excedió los límites. La longitud máxima es de %d caracter.\n", MAX_INPUT_FLOW_LENGTH);
+                while(getchar() != '\n'); // We need to clean up the input to avoid re-execute the loop multiple times
+                continue; // We can ask for user input again
+            }
+
+            // Check if the input is one of the specified characters
+            char inputChar;
+            if (sscanf(buffer, " %c", &inputChar) == 1) {
+                
+                if (inputChar == 'c'){
+                    return('c');
                 } else {
-                    if (strcmp(respuesta, "s") == 0){
-                        printf("\nDeteniendo la ejecución del programa.\n");
-                        SLEEP(1);
-                        exit(1);
+                    if (inputChar == 't'){
+                        printf("\n");
+                        return('t');
                     } else {
-                        printf("\nHas ingresado un valor incorrecto.\n");
+                        if (inputChar == 'f'){
+                            return('f');
+                        } else {
+                            if (inputChar == 's'){
+                                printf("\nDeteniendo la ejecución del programa.\n");
+                                exit(1);
+                            } else {
+                                printf("\nHas ingresado un valor incorrecto.\n");
+                                continue;
+                            }
+                        }
                     }
                 }
+            } else {
+                // Here we verify that the input wasn't something like TAB or another "special" keys
+                printf("\nHas ingresado un valor incorrecto.\n");
+                continue;
             }
+        } else {
+            printf("Error reading input.\n");
+            exit(1);
         }
-        printf("\n");
     }
 }
 
 void simulacion(void){
-    int saltoTiempo = 0;
-    int resTiempo = tiempoCiclo;
+
     bool final = false;
 
     while (1) { 
 
         while (primp != NULL && primp->ta == tiempoCiclo && multiprog < 5){
 
-            newToReady();
+            nuevoAListo();
 
             multiprog++;
         }
@@ -526,32 +602,30 @@ void simulacion(void){
         }
         
         /* Pequeño mensaje para dar aviso que empezó la planificación de los procesos. */
-        if (tiempoCiclo == 0 && priml != NULL){
+        if (tiempoCiclo == 0){
             printf("Comenzando la simulación... \n");
-            SLEEP(2);
+            SLEEP(1);
+        }
+
+        if (!final){
+            char respuesta = menuOpcionesDeFlujo();
+
+            if (respuesta == 'c'){
+                printf("\n\nSe continuará con el siguiente instante de tiempo.\n\n");
+            } else {
+                if (respuesta == 't'){
+                    printf("\n\nDaremos un salto de tiempo.\n\n");
+                } else {
+                    if (respuesta == 'f'){
+                        printf("\n\nIremos hasta el final.\n\n");
+                        final = true;
+                    }
+                }
+            }
         }
 
         if (priml != NULL) {
-            if ((resTiempo + saltoTiempo) == tiempoCiclo){
-                muestrasParciales(priml);
-
-                if (saltoTiempo == 0){
-                    saltoTiempo = 1;
-                }
-
-                /* Esta condición controla que si el usuario eligió ir hasta el final, no se muestre más el menú de opciones del flujo de ejecución. */
-                if (!final) {
-                    char control = menuOpcionesDeFlujo();
-                    if (control == 't') {
-                        saltoTiempo = controlDeEntradas("salto de tiempo", 1, 20);
-                    } else {
-                        if (control == 'f') {
-                            final = true;
-                        }
-                    }
-                }
-                resTiempo = tiempoCiclo;
-            }
+            muestrasParciales(priml);
             priml->tr--;
         } else {
             printf("\nInstante número: %d\n", tiempoCiclo);

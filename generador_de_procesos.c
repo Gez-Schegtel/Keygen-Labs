@@ -67,7 +67,7 @@ int main() {
         tam = controlDeEntradas("tamaño del proceso", 1, 250);
 
         // Escribir los datos en el archivo CSV con el ID actual
-        fprintf(archivo, "%d,%d,%d,%d,%d\n", id, ta, ti, tam);
+        fprintf(archivo, "%d,%d,%d,%d\n", id, ta, ti, tam);
         id++; // Incrementar el ID
     }
 
